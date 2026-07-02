@@ -1,0 +1,756 @@
+{
+  "type": "FeatureCollection",
+  "name": "Group 3 packet connector diagnostic lines",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            11.5655,
+            48.1482,
+            528.3
+          ],
+          [
+            11.5655,
+            48.1482,
+            528.3
+          ],
+          [
+            11.5655,
+            48.1482
+          ]
+        ]
+      },
+      "properties": {
+        "packet_time": "2026-06-27T10:19:06.790106Z",
+        "feature_type": "bucket_to_packet_connector",
+        "bucket_sequence": "bucket_0_estimated -> bucket_1_estimated -> real_packet_gps",
+        "position_estimation_quality": "unknown_no_previous_heading",
+        "interpolation_gap_s": null,
+        "note": "Diagnostic/provenance line only, not the measured route."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            11.5679742,
+            48.1488873,
+            519.8
+          ],
+          [
+            11.5687247,
+            48.1490958,
+            519.8
+          ],
+          [
+            11.5691,
+            48.1492
+          ]
+        ]
+      },
+      "properties": {
+        "packet_time": "2026-06-27T10:20:32.267058Z",
+        "feature_type": "bucket_to_packet_connector",
+        "bucket_sequence": "bucket_0_estimated -> bucket_1_estimated -> real_packet_gps",
+        "position_estimation_quality": "good",
+        "interpolation_gap_s": 85.477,
+        "note": "Diagnostic/provenance line only, not the measured route."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            11.5688619,
+            48.1495174,
+            514.59
+          ],
+          [
+            11.5686206,
+            48.1498391,
+            514.59
+          ],
+          [
+            11.5685,
+            48.15
+          ]
+        ]
+      },
+      "properties": {
+        "packet_time": "2026-06-27T10:21:57.810285Z",
+        "feature_type": "bucket_to_packet_connector",
+        "bucket_sequence": "bucket_0_estimated -> bucket_1_estimated -> real_packet_gps",
+        "position_estimation_quality": "good",
+        "interpolation_gap_s": 85.543,
+        "note": "Diagnostic/provenance line only, not the measured route."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            11.5716972,
+            48.1533654,
+            519.0
+          ],
+          [
+            11.572099,
+            48.1537885,
+            519.0
+          ],
+          [
+            11.5723,
+            48.154
+          ]
+        ]
+      },
+      "properties": {
+        "packet_time": "2026-06-27T10:26:14.366839Z",
+        "feature_type": "bucket_to_packet_connector",
+        "bucket_sequence": "bucket_0_estimated -> bucket_1_estimated -> real_packet_gps",
+        "position_estimation_quality": "poor_heading_from_large_gap",
+        "interpolation_gap_s": 256.557,
+        "note": "Diagnostic/provenance line only, not the measured route."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            11.5723,
+            48.154,
+            517.3
+          ],
+          [
+            11.5723,
+            48.154,
+            517.3
+          ],
+          [
+            11.5722,
+            48.1541
+          ]
+        ]
+      },
+      "properties": {
+        "packet_time": "2026-06-27T10:34:47.786963Z",
+        "feature_type": "bucket_to_packet_connector",
+        "bucket_sequence": "bucket_0_estimated -> bucket_1_estimated -> real_packet_gps",
+        "position_estimation_quality": "poor_heading_from_large_gap",
+        "interpolation_gap_s": 513.42,
+        "note": "Diagnostic/provenance line only, not the measured route."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            11.5693805,
+            48.1494949,
+            522.4
+          ],
+          [
+            11.5692602,
+            48.1492983,
+            522.4
+          ],
+          [
+            11.5692,
+            48.1492
+          ]
+        ]
+      },
+      "properties": {
+        "packet_time": "2026-06-27T10:37:39.529889Z",
+        "feature_type": "bucket_to_packet_connector",
+        "bucket_sequence": "bucket_0_estimated -> bucket_1_estimated -> real_packet_gps",
+        "position_estimation_quality": "weak_heading_may_span_turn",
+        "interpolation_gap_s": 171.743,
+        "note": "Diagnostic/provenance line only, not the measured route."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            11.5673606,
+            48.1465609,
+            517.09
+          ],
+          [
+            11.5670535,
+            48.1461203,
+            517.09
+          ],
+          [
+            11.5669,
+            48.1459
+          ]
+        ]
+      },
+      "properties": {
+        "packet_time": "2026-06-27T10:39:04.416383Z",
+        "feature_type": "bucket_to_packet_connector",
+        "bucket_sequence": "bucket_0_estimated -> bucket_1_estimated -> real_packet_gps",
+        "position_estimation_quality": "good",
+        "interpolation_gap_s": 84.886,
+        "note": "Diagnostic/provenance line only, not the measured route."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            11.5690015,
+            48.1448831,
+            516.2
+          ],
+          [
+            11.5696672,
+            48.144561,
+            516.2
+          ],
+          [
+            11.57,
+            48.1444
+          ]
+        ]
+      },
+      "properties": {
+        "packet_time": "2026-06-27T10:40:30.657302Z",
+        "feature_type": "bucket_to_packet_connector",
+        "bucket_sequence": "bucket_0_estimated -> bucket_1_estimated -> real_packet_gps",
+        "position_estimation_quality": "good",
+        "interpolation_gap_s": 86.241,
+        "note": "Diagnostic/provenance line only, not the measured route."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            11.5744052,
+            48.143214,
+            518.4
+          ],
+          [
+            11.5749351,
+            48.1430713,
+            518.4
+          ],
+          [
+            11.5752,
+            48.143
+          ]
+        ]
+      },
+      "properties": {
+        "packet_time": "2026-06-27T10:43:21.832799Z",
+        "feature_type": "bucket_to_packet_connector",
+        "bucket_sequence": "bucket_0_estimated -> bucket_1_estimated -> real_packet_gps",
+        "position_estimation_quality": "weak_heading_may_span_turn",
+        "interpolation_gap_s": 171.175,
+        "note": "Diagnostic/provenance line only, not the measured route."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            11.5732931,
+            48.1435085,
+            527.4
+          ],
+          [
+            11.5725644,
+            48.1437028,
+            527.4
+          ],
+          [
+            11.5722,
+            48.1438
+          ]
+        ]
+      },
+      "properties": {
+        "packet_time": "2026-06-27T10:44:46.71966Z",
+        "feature_type": "bucket_to_packet_connector",
+        "bucket_sequence": "bucket_0_estimated -> bucket_1_estimated -> real_packet_gps",
+        "position_estimation_quality": "good",
+        "interpolation_gap_s": 84.887,
+        "note": "Diagnostic/provenance line only, not the measured route."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            11.5686568,
+            48.1448334,
+            519.7
+          ],
+          [
+            11.5678189,
+            48.1450778,
+            519.7
+          ],
+          [
+            11.5674,
+            48.1452
+          ]
+        ]
+      },
+      "properties": {
+        "packet_time": "2026-06-27T10:46:13.296175Z",
+        "feature_type": "bucket_to_packet_connector",
+        "bucket_sequence": "bucket_0_estimated -> bucket_1_estimated -> real_packet_gps",
+        "position_estimation_quality": "good",
+        "interpolation_gap_s": 86.577,
+        "note": "Diagnostic/provenance line only, not the measured route."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            11.5680045,
+            48.1472726,
+            516.59
+          ],
+          [
+            11.5680682,
+            48.1474909,
+            516.59
+          ],
+          [
+            11.5681,
+            48.1476
+          ]
+        ]
+      },
+      "properties": {
+        "packet_time": "2026-06-27T10:47:38.846276Z",
+        "feature_type": "bucket_to_packet_connector",
+        "bucket_sequence": "bucket_0_estimated -> bucket_1_estimated -> real_packet_gps",
+        "position_estimation_quality": "good",
+        "interpolation_gap_s": 85.55,
+        "note": "Diagnostic/provenance line only, not the measured route."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            11.5683752,
+            48.1497096,
+            520.7
+          ],
+          [
+            11.5683917,
+            48.1498365,
+            520.7
+          ],
+          [
+            11.5684,
+            48.1499
+          ]
+        ]
+      },
+      "properties": {
+        "packet_time": "2026-06-27T10:49:03.79253Z",
+        "feature_type": "bucket_to_packet_connector",
+        "bucket_sequence": "bucket_0_estimated -> bucket_1_estimated -> real_packet_gps",
+        "position_estimation_quality": "good",
+        "interpolation_gap_s": 84.946,
+        "note": "Diagnostic/provenance line only, not the measured route."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            11.5684,
+            48.15,
+            530.4
+          ],
+          [
+            11.5684,
+            48.15,
+            530.4
+          ],
+          [
+            11.5684,
+            48.15
+          ]
+        ]
+      },
+      "properties": {
+        "packet_time": "2026-06-27T10:50:29.339682Z",
+        "feature_type": "bucket_to_packet_connector",
+        "bucket_sequence": "bucket_0_estimated -> bucket_1_estimated -> real_packet_gps",
+        "position_estimation_quality": "good",
+        "interpolation_gap_s": 85.547,
+        "note": "Diagnostic/provenance line only, not the measured route."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            11.5684,
+            48.15,
+            531.4
+          ],
+          [
+            11.5684,
+            48.15,
+            531.4
+          ],
+          [
+            11.5684,
+            48.15
+          ]
+        ]
+      },
+      "properties": {
+        "packet_time": "2026-06-27T10:51:54.9217Z",
+        "feature_type": "bucket_to_packet_connector",
+        "bucket_sequence": "bucket_0_estimated -> bucket_1_estimated -> real_packet_gps",
+        "position_estimation_quality": "good",
+        "interpolation_gap_s": 85.582,
+        "note": "Diagnostic/provenance line only, not the measured route."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            11.5710589,
+            48.1525783,
+            528.4
+          ],
+          [
+            11.5714863,
+            48.1529928,
+            528.4
+          ],
+          [
+            11.5717,
+            48.1532
+          ]
+        ]
+      },
+      "properties": {
+        "packet_time": "2026-06-27T10:54:46.091015Z",
+        "feature_type": "bucket_to_packet_connector",
+        "bucket_sequence": "bucket_0_estimated -> bucket_1_estimated -> real_packet_gps",
+        "position_estimation_quality": "weak_heading_may_span_turn",
+        "interpolation_gap_s": 171.169,
+        "note": "Diagnostic/provenance line only, not the measured route."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            11.5821546,
+            48.1541504,
+            529.2
+          ],
+          [
+            11.5825182,
+            48.1541835,
+            529.2
+          ],
+          [
+            11.5827,
+            48.1542
+          ]
+        ]
+      },
+      "properties": {
+        "packet_time": "2026-06-27T10:59:02.911365Z",
+        "feature_type": "bucket_to_packet_connector",
+        "bucket_sequence": "bucket_0_estimated -> bucket_1_estimated -> real_packet_gps",
+        "position_estimation_quality": "poor_heading_from_large_gap",
+        "interpolation_gap_s": 256.82,
+        "note": "Diagnostic/provenance line only, not the measured route."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            11.5791089,
+            48.1546584,
+            522.2
+          ],
+          [
+            11.5783696,
+            48.1547528,
+            522.2
+          ],
+          [
+            11.578,
+            48.1548
+          ]
+        ]
+      },
+      "properties": {
+        "packet_time": "2026-06-27T11:00:28.41785Z",
+        "feature_type": "bucket_to_packet_connector",
+        "bucket_sequence": "bucket_0_estimated -> bucket_1_estimated -> real_packet_gps",
+        "position_estimation_quality": "good",
+        "interpolation_gap_s": 85.506,
+        "note": "Diagnostic/provenance line only, not the measured route."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            11.5733465,
+            48.1543101,
+            513.9
+          ],
+          [
+            11.5726488,
+            48.1542367,
+            513.9
+          ],
+          [
+            11.5723,
+            48.1542
+          ]
+        ]
+      },
+      "properties": {
+        "packet_time": "2026-06-27T11:03:19.666249Z",
+        "feature_type": "bucket_to_packet_connector",
+        "bucket_sequence": "bucket_0_estimated -> bucket_1_estimated -> real_packet_gps",
+        "position_estimation_quality": "weak_heading_may_span_turn",
+        "interpolation_gap_s": 171.248,
+        "note": "Diagnostic/provenance line only, not the measured route."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            11.5705583,
+            48.1515083,
+            528.09
+          ],
+          [
+            11.5702528,
+            48.1510361,
+            528.09
+          ],
+          [
+            11.5701,
+            48.1508
+          ]
+        ]
+      },
+      "properties": {
+        "packet_time": "2026-06-27T11:04:45.29946Z",
+        "feature_type": "bucket_to_packet_connector",
+        "bucket_sequence": "bucket_0_estimated -> bucket_1_estimated -> real_packet_gps",
+        "position_estimation_quality": "good",
+        "interpolation_gap_s": 85.633,
+        "note": "Diagnostic/provenance line only, not the measured route."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            11.5686977,
+            48.1486597,
+            517.09
+          ],
+          [
+            11.5683659,
+            48.1481532,
+            517.09
+          ],
+          [
+            11.5682,
+            48.1479
+          ]
+        ]
+      },
+      "properties": {
+        "packet_time": "2026-06-27T11:06:11.817971Z",
+        "feature_type": "bucket_to_packet_connector",
+        "bucket_sequence": "bucket_0_estimated -> bucket_1_estimated -> real_packet_gps",
+        "position_estimation_quality": "good",
+        "interpolation_gap_s": 86.519,
+        "note": "Diagnostic/provenance line only, not the measured route."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            11.5674423,
+            48.1457784,
+            515.59
+          ],
+          [
+            11.5672808,
+            48.1453261,
+            515.59
+          ],
+          [
+            11.5672,
+            48.1451
+          ]
+        ]
+      },
+      "properties": {
+        "packet_time": "2026-06-27T11:07:37.701258Z",
+        "feature_type": "bucket_to_packet_connector",
+        "bucket_sequence": "bucket_0_estimated -> bucket_1_estimated -> real_packet_gps",
+        "position_estimation_quality": "good",
+        "interpolation_gap_s": 85.883,
+        "note": "Diagnostic/provenance line only, not the measured route."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            11.5715594,
+            48.1439903,
+            524.59
+          ],
+          [
+            11.5723198,
+            48.1437968,
+            524.59
+          ],
+          [
+            11.5727,
+            48.1437
+          ]
+        ]
+      },
+      "properties": {
+        "packet_time": "2026-06-27T11:11:54.667884Z",
+        "feature_type": "bucket_to_packet_connector",
+        "bucket_sequence": "bucket_0_estimated -> bucket_1_estimated -> real_packet_gps",
+        "position_estimation_quality": "poor_heading_from_large_gap",
+        "interpolation_gap_s": 256.967,
+        "note": "Diagnostic/provenance line only, not the measured route."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            11.569057,
+            48.1446665,
+            521.4
+          ],
+          [
+            11.568219,
+            48.1448888,
+            521.4
+          ],
+          [
+            11.5678,
+            48.145
+          ]
+        ]
+      },
+      "properties": {
+        "packet_time": "2026-06-27T11:13:20.242347Z",
+        "feature_type": "bucket_to_packet_connector",
+        "bucket_sequence": "bucket_0_estimated -> bucket_1_estimated -> real_packet_gps",
+        "position_estimation_quality": "good",
+        "interpolation_gap_s": 85.574,
+        "note": "Diagnostic/provenance line only, not the measured route."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            11.5684794,
+            48.1497555,
+            510.7
+          ],
+          [
+            11.5684931,
+            48.1498518,
+            510.7
+          ],
+          [
+            11.5685,
+            48.1499
+          ]
+        ]
+      },
+      "properties": {
+        "packet_time": "2026-06-27T11:16:10.265578Z",
+        "feature_type": "bucket_to_packet_connector",
+        "bucket_sequence": "bucket_0_estimated -> bucket_1_estimated -> real_packet_gps",
+        "position_estimation_quality": "weak_heading_may_span_turn",
+        "interpolation_gap_s": 170.023,
+        "note": "Diagnostic/provenance line only, not the measured route."
+      }
+    }
+  ]
+}

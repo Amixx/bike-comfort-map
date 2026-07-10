@@ -603,7 +603,9 @@
     const bounds = L.latLngBounds(reconstructedRoutes.flatMap((route) => route.points))
     map.invalidateSize({ animate: false, pan: false })
     map.panTo(bounds.getCenter(), { animate: false })
-    map.panBy([0, 28], { animate: false })
+    const a4LandscapeWidthPx = 297 / 25.4 * 96
+    const horizontalCropPx = Math.max(0, (map.getSize().x - a4LandscapeWidthPx) / 2)
+    map.panBy([horizontalCropPx, 28], { animate: false })
   }
 
   function restoreInteractiveView() {

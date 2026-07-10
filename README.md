@@ -10,7 +10,7 @@ Proposed repo name: `bike-comfort-map`.
 - Raw packet/window points from both rides
 - Optional real packet GPS dots and diagnostic bucket→packet connector lines
 - Roughness, RMS, peak acceleration, vibration, and speed coloring
-- Quality, roughness class, and score filters; all ride dates are always included
+- Adjustable score range with all ride dates and position-quality classes always included
 - Adjustable packet maximum-speed filter (2 km/h by default) to exclude windows whose maximum speed stays below the threshold consistently across layers and exports
 - Toggleable June 27 and July 2 screenshot-route reconstructions with same-ride measurement-colored road segments and an optional full-route color interpolation
 - Optional route snapping from a manually clicked or uploaded GeoJSON LineString route

@@ -83,7 +83,6 @@
     unknown_no_previous_heading: 0.46,
   }
   const classOrder = ['low roughness', 'moderate roughness', 'high roughness', 'very high roughness']
-  const qualityOrder = ['good', 'weak_heading_may_span_turn', 'poor_heading_from_large_gap', 'unknown_no_previous_heading']
 
   let mapEl: HTMLDivElement
   let fileInput: HTMLInputElement
@@ -95,8 +94,6 @@
   let isLoading = true
 
   let visibleLayers = new Set<LayerId>(['bucket'])
-  let selectedQualities = new Set<string>(qualityOrder)
-  let selectedClasses = new Set<string>(classOrder)
   let scoreMetric: ScoreMetric = 'roughness'
   let packetRoughnessMode: PacketRoughnessMode = 'max'
   let minScore = 0
@@ -122,8 +119,6 @@
   $: canSnap = routeLineCount > 0
   $: {
     visibleLayers
-    selectedQualities
-    selectedClasses
     scoreMetric
     packetRoughnessMode
     minScore
@@ -200,34 +195,8 @@
     visibleLayers = next
   }
 
-  function toggleQuality(quality: string) {
-    const next = new Set(selectedQualities)
-    next.has(quality) ? next.delete(quality) : next.add(quality)
-    selectedQualities = next
-  }
-
-  function toggleClass(className: string) {
-    const next = new Set(selectedClasses)
-    next.has(className) ? next.delete(className) : next.add(className)
-    selectedClasses = next
-  }
-
-  function selectAllQualities() {
-    selectedQualities = new Set(qualityOrder)
-  }
-
-  function selectTrustedQualities() {
-    selectedQualities = new Set(['good'])
-  }
-
-  function selectAllClasses() {
-    selectedClasses = new Set(classOrder)
-  }
-
   function resetFilters() {
     visibleLayers = new Set(['bucket'])
-    selectedQualities = new Set(qualityOrder)
-    selectedClasses = new Set(classOrder)
     scoreMetric = 'roughness'
     packetRoughnessMode = 'max'
     minScore = 0
@@ -274,10 +243,6 @@
     if (packetTime && !movingPacketTimes.has(packetTime)) return false
     if (layerId === 'connectors' || layerId === 'gps') return true
 
-    const quality = feature.properties.position_estimation_quality ?? 'unknown_no_previous_heading'
-    if (!selectedQualities.has(quality)) return false
-    const roughnessClass = getRoughnessClass(feature, layerId)
-    if (!selectedClasses.has(roughnessClass)) return false
     const score = getScore(feature, layerId)
     return score == null || (score >= minScore && score <= maxScore)
   }
@@ -570,12 +535,9 @@
     const pointFeatures = features.filter((feature) => feature.geometry.type === 'Point')
     const scores = pointFeatures.map((feature) => getScore(feature, feature.properties.app_layer)).filter((x): x is number => x != null)
     const classes = Object.fromEntries(classOrder.map((className) => [className, 0])) as Record<string, number>
-    const qualities = Object.fromEntries(qualityOrder.map((quality) => [quality, 0])) as Record<string, number>
     for (const feature of pointFeatures) {
       const layerId = feature.properties.app_layer as LayerId
       classes[getRoughnessClass(feature, layerId)] = (classes[getRoughnessClass(feature, layerId)] ?? 0) + 1
-      const q = feature.properties.position_estimation_quality
-      if (q) qualities[q] = (qualities[q] ?? 0) + 1
     }
     return {
       count: features.length,
@@ -584,7 +546,6 @@
       max: scores.length ? Math.max(...scores) : null,
       avg: scores.length ? scores.reduce((sum, value) => sum + value, 0) / scores.length : null,
       classes,
-      qualities,
     }
   }
 
@@ -871,28 +832,7 @@
     </section>
 
     <section class="card controls">
-      <h2>Filters</h2>
-      <div class="button-row">
-        <button type="button" onclick={selectAllQualities}>All quality</button>
-        <button type="button" onclick={selectTrustedQualities}>Good only</button>
-        <button type="button" onclick={selectAllClasses}>All classes</button>
-      </div>
-      <div class="pill-grid">
-        {#each qualityOrder as quality}
-          <label class:muted={!selectedQualities.has(quality)}>
-            <input type="checkbox" checked={selectedQualities.has(quality)} onchange={() => toggleQuality(quality)} />
-            {qualityLabels[quality]}
-          </label>
-        {/each}
-      </div>
-      <div class="pill-grid roughness-grid">
-        {#each classOrder as className}
-          <label class:muted={!selectedClasses.has(className)}>
-            <input type="checkbox" checked={selectedClasses.has(className)} onchange={() => toggleClass(className)} />
-            {className.replace(' roughness', '')}
-          </label>
-        {/each}
-      </div>
+      <h2>Data cleaning</h2>
       <label class="check-row">
         <input type="checkbox" bind:checked={hideStationaryPackets} />
         <span><strong>Hide low-speed packets</strong><small>Disable this refinement to restore all raw packet windows.</small></span>

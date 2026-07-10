@@ -16,11 +16,23 @@
   type FeatureCollection = {
     type: 'FeatureCollection'
     features: GeoJsonFeature[]
+    properties?: Record<string, any>
   }
 
   type LayerId = 'bucket' | 'packet' | 'gps' | 'connectors'
   type ScoreMetric = 'roughness' | 'rms' | 'peak' | 'vibration' | 'speed'
   type PacketRoughnessMode = 'max' | 'mean'
+  type RouteDefinition = {
+    points: [number, number][]
+    rideDate?: string
+    label: string
+    source: 'reconstructed' | 'uploaded' | 'manual'
+  }
+
+  const reconstructedRouteFiles = [
+    '/data/group3-bike-comfort-ride-2026-06-27-reconstructed-route.geojson',
+    '/data/group3-bike-comfort-ride-2026-07-02-reconstructed-route.geojson',
+  ]
 
   const dataSources: Record<LayerId, { label: string; files: string[]; help: string }> = {
     bucket: {
@@ -87,26 +99,25 @@
   let selectedClasses = new Set<string>(classOrder)
   let scoreMetric: ScoreMetric = 'roughness'
   let packetRoughnessMode: PacketRoughnessMode = 'max'
-  let timeStart = ''
-  let timeEnd = ''
-  let fullTimeStart = ''
-  let fullTimeEnd = ''
   let minScore = 0
   let maxScore = 1
+  let hideStationaryPackets = true
   let minRideSpeedKmh = 1
+  let showReconstructedRoute = true
+  let showColoredSegments = true
   let snapEnabled = false
   let snapMaxDistanceM = 35
   let routeEditMode = false
   let manualRoute: [number, number][] = []
   let uploadedRoutes: [number, number][][] = []
+  let reconstructedRoutes: RouteDefinition[] = []
   let currentFeatures: GeoJsonFeature[] = []
   let snappedPointCount = 0
   let totalPointCount = 0
   let hasFitted = false
 
   $: stats = buildStats(currentFeatures)
-  $: routePointCount = manualRoute.length + uploadedRoutes.reduce((sum, route) => sum + route.length, 0)
-  $: routeLineCount = (manualRoute.length > 1 ? 1 : 0) + uploadedRoutes.filter((route) => route.length > 1).length
+  $: routeLineCount = (manualRoute.length > 1 ? 1 : 0) + uploadedRoutes.filter((route) => route.length > 1).length + reconstructedRoutes.filter((route) => route.points.length > 1).length
   $: canSnap = routeLineCount > 0
   $: {
     visibleLayers
@@ -114,15 +125,17 @@
     selectedClasses
     scoreMetric
     packetRoughnessMode
-    timeStart
-    timeEnd
     minScore
     maxScore
+    hideStationaryPackets
     minRideSpeedKmh
+    showReconstructedRoute
+    showColoredSegments
     snapEnabled
     snapMaxDistanceM
     manualRoute
     uploadedRoutes
+    reconstructedRoutes
     data
     if (map && !isLoading) {
       currentFeatures = getFilteredFeatures()
@@ -145,20 +158,27 @@
     })
 
     try {
-      const entries = await Promise.all(
-        layerOrder.map(async (id) => {
-          const collections = await Promise.all(
-            dataSources[id].files.map(async (file) => {
-              const response = await fetch(withBase(file))
-              if (!response.ok) throw new Error(`${file}: ${response.status}`)
-              return response.json() as Promise<FeatureCollection>
-            }),
-          )
-          return [id, { type: 'FeatureCollection', features: collections.flatMap((collection) => collection.features) }] as const
-        }),
-      )
+      const [entries, reconstructedRouteCollections] = await Promise.all([
+        Promise.all(
+          layerOrder.map(async (id) => {
+            const collections = await Promise.all(
+              dataSources[id].files.map(async (file) => {
+                const response = await fetch(withBase(file))
+                if (!response.ok) throw new Error(`${file}: ${response.status}`)
+                return response.json() as Promise<FeatureCollection>
+              }),
+            )
+            return [id, { type: 'FeatureCollection', features: collections.flatMap((collection) => collection.features) }] as const
+          }),
+        ),
+        Promise.all(reconstructedRouteFiles.map(async (file) => {
+          const response = await fetch(withBase(file))
+          if (!response.ok) throw new Error(`${file}: ${response.status}`)
+          return response.json() as Promise<FeatureCollection>
+        })),
+      ])
       data = Object.fromEntries(entries) as Record<LayerId, FeatureCollection>
-      setFullTimeRange()
+      reconstructedRoutes = reconstructedRouteCollections.flatMap(extractReconstructedRoutes)
     } catch (error) {
       loadError = error instanceof Error ? error.message : String(error)
     } finally {
@@ -169,19 +189,6 @@
   function withBase(path: string) {
     const base = import.meta.env.BASE_URL || '/'
     return `${base.replace(/\/$/, '')}${path}`
-  }
-
-  function setFullTimeRange() {
-    const times = layerOrder
-      .flatMap((id) => data[id]?.features ?? [])
-      .map((feature) => getTime(feature))
-      .filter(Boolean)
-      .sort() as string[]
-    if (!times.length) return
-    fullTimeStart = toDatetimeLocal(times[0], 'floor')
-    fullTimeEnd = toDatetimeLocal(times[times.length - 1], 'ceil')
-    timeStart = fullTimeStart
-    timeEnd = fullTimeEnd
   }
 
   function toggleLayer(id: LayerId) {
@@ -222,22 +229,12 @@
     packetRoughnessMode = 'max'
     minScore = 0
     maxScore = 1
+    hideStationaryPackets = true
     minRideSpeedKmh = 1
-    timeStart = fullTimeStart
-    timeEnd = fullTimeEnd
   }
 
   function getFilteredFeatures() {
-    const start = timeStart ? new Date(timeStart).getTime() : -Infinity
-    const end = timeEnd ? new Date(timeEnd).getTime() : Infinity
-    const minimumSpeed = numeric(minRideSpeedKmh) ?? 0
-    const movingPacketTimes = new Set(
-      layerOrder
-        .flatMap((id) => data[id]?.features ?? [])
-        .filter((feature) => (numeric(feature.properties.avg_speed_kmh_window) ?? -Infinity) >= minimumSpeed)
-        .map((feature) => feature.properties.packet_time)
-        .filter(Boolean),
-    )
+    const movingPacketTimes = getMovingPacketTimes()
     const out: GeoJsonFeature[] = []
     snappedPointCount = 0
     totalPointCount = 0
@@ -245,27 +242,41 @@
     for (const layerId of layerOrder) {
       if (!visibleLayers.has(layerId)) continue
       for (const feature of data[layerId]?.features ?? []) {
-        const packetTime = feature.properties.packet_time
-        if (packetTime && !movingPacketTimes.has(packetTime)) continue
-
-        const t = getTime(feature)
-        const millis = t ? new Date(t).getTime() : NaN
-        if (Number.isFinite(millis) && (millis < start || millis > end)) continue
-
-        if (layerId !== 'connectors' && layerId !== 'gps') {
-          const quality = feature.properties.position_estimation_quality ?? 'unknown_no_previous_heading'
-          if (!selectedQualities.has(quality)) continue
-          const roughnessClass = getRoughnessClass(feature, layerId)
-          if (!selectedClasses.has(roughnessClass)) continue
-          const score = getScore(feature, layerId)
-          if (score != null && (score < minScore || score > maxScore)) continue
-        }
-
+        if (!passesFilters(feature, layerId, movingPacketTimes)) continue
         out.push(prepareFeatureForDisplay(feature, layerId))
       }
     }
 
     return out
+  }
+
+  function getMovingPacketTimes() {
+    if (!hideStationaryPackets) {
+      return new Set(
+        layerOrder.flatMap((id) => data[id]?.features ?? []).map((feature) => feature.properties.packet_time).filter(Boolean),
+      )
+    }
+    const minimumSpeed = numeric(minRideSpeedKmh) ?? 0
+    return new Set(
+      layerOrder
+        .flatMap((id) => data[id]?.features ?? [])
+        .filter((feature) => (numeric(feature.properties.avg_speed_kmh_window) ?? -Infinity) >= minimumSpeed)
+        .map((feature) => feature.properties.packet_time)
+        .filter(Boolean),
+    )
+  }
+
+  function passesFilters(feature: GeoJsonFeature, layerId: LayerId, movingPacketTimes: Set<any>) {
+    const packetTime = feature.properties.packet_time
+    if (packetTime && !movingPacketTimes.has(packetTime)) return false
+    if (layerId === 'connectors' || layerId === 'gps') return true
+
+    const quality = feature.properties.position_estimation_quality ?? 'unknown_no_previous_heading'
+    if (!selectedQualities.has(quality)) return false
+    const roughnessClass = getRoughnessClass(feature, layerId)
+    if (!selectedClasses.has(roughnessClass)) return false
+    const score = getScore(feature, layerId)
+    return score == null || (score >= minScore && score <= maxScore)
   }
 
   function prepareFeatureForDisplay(feature: GeoJsonFeature, layerId: LayerId): GeoJsonFeature {
@@ -278,14 +289,14 @@
     if (!snapEnabled || !canSnap || cloned.geometry.type !== 'Point') return cloned
     totalPointCount += 1
     const [lng, lat] = cloned.geometry.coordinates as [number, number]
-    const snap = findNearestRoutePoint([lat, lng])
+    const snap = findNearestRoutePoint([lat, lng], cloned.properties.ride_date ?? String(cloned.properties.packet_time ?? '').slice(0, 10))
     if (snap && snap.distanceM <= snapMaxDistanceM) {
       snappedPointCount += 1
       cloned.geometry.coordinates = [snap.point[1], snap.point[0]]
       cloned.properties.snap_original_longitude = lng
       cloned.properties.snap_original_latitude = lat
       cloned.properties.snap_distance_m = Math.round(snap.distanceM * 10) / 10
-      cloned.properties.snap_method = 'nearest point on user-provided route'
+      cloned.properties.snap_method = 'nearest point on reconstructed or user-provided route'
     }
     return cloned
   }
@@ -294,6 +305,7 @@
     featureLayer.clearLayers()
     routeLayer.clearLayers()
     drawRoutes()
+    drawColoredRouteSegments()
 
     const bounds = L.latLngBounds([])
     for (const feature of currentFeatures) {
@@ -338,9 +350,16 @@
   }
 
   function drawRoutes() {
-    for (const route of allRoutes()) {
-      if (route.length < 2) continue
-      L.polyline(route, { color: '#0f766e', weight: 4, opacity: 0.8 }).addTo(routeLayer)
+    for (const route of allRouteDefinitions()) {
+      if (route.points.length < 2 || (route.source === 'reconstructed' && !showReconstructedRoute)) continue
+      L.polyline(route.points, {
+        color: route.source === 'reconstructed' ? '#64748b' : '#0f766e',
+        weight: route.source === 'reconstructed' ? 5 : 4,
+        opacity: route.source === 'reconstructed' ? 0.45 : 0.8,
+        dashArray: route.source === 'reconstructed' ? '7 7' : undefined,
+      }).bindPopup(route.source === 'reconstructed'
+        ? `<div class="popup"><h3>${escapeHtml(route.label)}</h3><p><strong>Ride:</strong> ${escapeHtml(route.rideDate ?? 'unknown')}</p><p>Approximate screenshot reconstruction; no timestamped phone GPS was available.</p></div>`
+        : `<div class="popup"><h3>${escapeHtml(route.label)}</h3></div>`).addTo(routeLayer)
     }
     if (manualRoute.length) {
       for (const latlng of manualRoute) {
@@ -349,9 +368,101 @@
     }
   }
 
-  function allRoutes() {
-    const routes = [...uploadedRoutes]
-    if (manualRoute.length > 1) routes.push(manualRoute)
+  function drawColoredRouteSegments() {
+    for (const feature of getMeasuredSegmentFeatures()) {
+      const coordinates = feature.geometry.coordinates as [number, number][]
+      const points = coordinates.map(([lng, lat]) => [lat, lng] as [number, number])
+      const p = feature.properties
+      L.polyline(points, {
+        color: colorForScore(p.score_median, p.roughness_class),
+        weight: 8,
+        opacity: p.position_uncertain ? 0.58 : 0.92,
+        dashArray: p.position_uncertain ? '4 5' : undefined,
+      }).bindPopup(`<div class="popup"><h3>Measured road segment</h3>
+        <p><strong>Metric median:</strong> ${escapeHtml(fmt(p.score_median))}</p>
+        <p><strong>Samples:</strong> ${p.sample_count}</p>
+        <p><strong>Mean match distance:</strong> ${escapeHtml(fmt(p.mean_match_distance_m))} m</p>
+        <p><strong>Ride:</strong> ${escapeHtml(p.ride_date)}</p>
+        ${p.position_uncertain ? '<p><strong>Warning:</strong> dashed because all contributing positions have uncertain headings.</p>' : ''}
+      </div>`).addTo(routeLayer)
+    }
+  }
+
+  function getMeasuredSegmentFeatures(): GeoJsonFeature[] {
+    if (!showReconstructedRoute || !showColoredSegments) return []
+    const movingPacketTimes = getMovingPacketTimes()
+    const bucketFeatures = (data.bucket?.features ?? []).filter((feature) => passesFilters(feature, 'bucket', movingPacketTimes))
+    const segmentFeatures: GeoJsonFeature[] = []
+
+    for (const route of reconstructedRoutes) {
+      const measurements = bucketFeatures.filter((feature) => {
+        const rideDate = feature.properties.ride_date ?? String(feature.properties.packet_time ?? '').slice(0, 10)
+        return Boolean(route.rideDate) && rideDate === route.rideDate
+      })
+      const bySegment = new Map<number, { scores: number[]; distances: number[]; qualities: string[] }>()
+
+      for (const feature of measurements) {
+        if (feature.geometry.type !== 'Point') continue
+        const [lng, lat] = feature.geometry.coordinates as [number, number]
+        const match = findNearestPointOnRoute([lat, lng], route.points)
+        const score = getScore(feature, 'bucket')
+        if (!match || match.distanceM > snapMaxDistanceM || score == null) continue
+        const values = bySegment.get(match.segmentIndex) ?? { scores: [], distances: [], qualities: [] }
+        values.scores.push(score)
+        values.distances.push(match.distanceM)
+        values.qualities.push(feature.properties.position_estimation_quality ?? 'unknown_no_previous_heading')
+        bySegment.set(match.segmentIndex, values)
+      }
+
+      for (const [segmentIndex, values] of bySegment) {
+        const score = median(values.scores)
+        const roughnessClass = classForScore(score)
+        const meanDistance = values.distances.reduce((sum, value) => sum + value, 0) / values.distances.length
+        const uncertain = values.qualities.every((quality) => quality !== 'good')
+        segmentFeatures.push({
+          type: 'Feature',
+          geometry: {
+            type: 'LineString',
+            coordinates: [route.points[segmentIndex], route.points[segmentIndex + 1]].map(([lat, lng]) => [lng, lat]),
+          },
+          properties: {
+            feature_kind: 'measured_route_segment',
+            route_source: route.source,
+            route_label: route.label,
+            ride_date: route.rideDate,
+            score_metric: scoreMetric,
+            score_median: score,
+            roughness_class: roughnessClass,
+            sample_count: values.scores.length,
+            mean_match_distance_m: Math.round(meanDistance * 10) / 10,
+            position_uncertain: uncertain,
+            match_max_distance_m: snapMaxDistanceM,
+          },
+        })
+      }
+    }
+    return segmentFeatures
+  }
+
+  function classForScore(score: number) {
+    if (score < 0.25) return 'low roughness'
+    if (score < 0.5) return 'moderate roughness'
+    if (score < 0.75) return 'high roughness'
+    return 'very high roughness'
+  }
+
+  function median(values: number[]) {
+    const sorted = [...values].sort((a, b) => a - b)
+    const middle = Math.floor(sorted.length / 2)
+    return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2
+  }
+
+  function allRouteDefinitions(): RouteDefinition[] {
+    const routes: RouteDefinition[] = [
+      ...reconstructedRoutes,
+      ...uploadedRoutes.map((points, index) => ({ points, label: `Uploaded route ${index + 1}`, source: 'uploaded' as const })),
+    ]
+    if (manualRoute.length > 1) routes.push({ points: manualRoute, label: 'Manual route', source: 'manual' })
     return routes
   }
 
@@ -456,6 +567,37 @@
     downloadBlob(JSON.stringify(collection, null, 2), 'group3-bike-comfort-filtered.geojson', 'application/geo+json')
   }
 
+  function downloadVisibleGeoJson() {
+    const routeFeatures: GeoJsonFeature[] = allRouteDefinitions()
+      .filter((route) => route.points.length > 1 && (route.source !== 'reconstructed' || showReconstructedRoute))
+      .map((route) => ({
+        type: 'Feature',
+        geometry: { type: 'LineString', coordinates: route.points.map(([lat, lng]) => [lng, lat]) },
+        properties: {
+          feature_kind: 'visible_route',
+          route_source: route.source,
+          ride_date: route.rideDate ?? null,
+          label: route.label,
+          approximate: route.source === 'reconstructed',
+        },
+      }))
+    const collection: FeatureCollection = {
+      type: 'FeatureCollection',
+      properties: {
+        exported_at: new Date().toISOString(),
+        export_scope: 'visible filtered map data',
+        score_metric: scoreMetric,
+        stationary_filter_enabled: hideStationaryPackets,
+        stationary_cutoff_kmh: hideStationaryPackets ? minRideSpeedKmh : null,
+        point_snapping_enabled: snapEnabled,
+        colored_segments_enabled: showColoredSegments && showReconstructedRoute,
+        warning: 'Reconstructed routes, snapped positions, and colored segments are approximate refinements; original coordinates remain in snap_original_* properties when snapping is enabled.',
+      },
+      features: [...routeFeatures, ...getMeasuredSegmentFeatures(), ...currentFeatures],
+    }
+    downloadBlob(JSON.stringify(collection, null, 2), 'group3-bike-comfort-visible-map.geojson', 'application/geo+json')
+  }
+
   function downloadFilteredCsv() {
     const rows = currentFeatures
       .filter((feature) => feature.geometry.type === 'Point')
@@ -483,10 +625,10 @@
   }
 
   function downloadRouteGeoJson() {
-    const features = allRoutes().map((route, index) => ({
+    const features = allRouteDefinitions().map((route, index) => ({
       type: 'Feature',
-      geometry: { type: 'LineString', coordinates: route.map(([lat, lng]) => [lng, lat]) },
-      properties: { route_index: index + 1, source: index < uploadedRoutes.length ? 'uploaded' : 'manual' },
+      geometry: { type: 'LineString', coordinates: route.points.map(([lat, lng]) => [lng, lat]) },
+      properties: { route_index: index + 1, source: route.source, ride_date: route.rideDate ?? null, label: route.label },
     }))
     downloadBlob(JSON.stringify({ type: 'FeatureCollection', features }, null, 2), 'group3-bike-comfort-snap-route.geojson', 'application/geo+json')
   }
@@ -520,6 +662,18 @@
     return []
   }
 
+  function extractReconstructedRoutes(collection: FeatureCollection): RouteDefinition[] {
+    return collection.features.flatMap((feature, featureIndex) => {
+      const properties = { ...collection.properties, ...feature.properties }
+      return extractRoutes(feature.geometry).map((points, routeIndex) => ({
+        points,
+        rideDate: properties.ride_date,
+        label: properties.label ?? `Reconstructed route ${featureIndex + 1}.${routeIndex + 1}`,
+        source: 'reconstructed' as const,
+      }))
+    })
+  }
+
   function clearRoutes() {
     manualRoute = []
     uploadedRoutes = []
@@ -530,13 +684,21 @@
     manualRoute = manualRoute.slice(0, -1)
   }
 
-  function findNearestRoutePoint(point: [number, number]) {
-    let best: { point: [number, number]; distanceM: number } | null = null
-    for (const route of allRoutes()) {
-      for (let i = 0; i < route.length - 1; i += 1) {
-        const candidate = nearestPointOnSegment(point, route[i], route[i + 1])
-        if (!best || candidate.distanceM < best.distanceM) best = candidate
-      }
+  function findNearestRoutePoint(point: [number, number], rideDate?: string) {
+    let best: { point: [number, number]; distanceM: number; segmentIndex: number } | null = null
+    for (const route of allRouteDefinitions()) {
+      if (route.source === 'reconstructed' && route.rideDate !== rideDate) continue
+      const candidate = findNearestPointOnRoute(point, route.points)
+      if (candidate && (!best || candidate.distanceM < best.distanceM)) best = candidate
+    }
+    return best
+  }
+
+  function findNearestPointOnRoute(point: [number, number], route: [number, number][]) {
+    let best: { point: [number, number]; distanceM: number; segmentIndex: number } | null = null
+    for (let i = 0; i < route.length - 1; i += 1) {
+      const candidate = { ...nearestPointOnSegment(point, route[i], route[i + 1]), segmentIndex: i }
+      if (!best || candidate.distanceM < best.distanceM) best = candidate
     }
     return best
   }
@@ -567,17 +729,6 @@
   function unprojectMeters({ x, y }: { x: number; y: number }, originLat: number): [number, number] {
     const r = 6371000
     return [y / r * 180 / Math.PI, x / (r * Math.cos(originLat * Math.PI / 180)) * 180 / Math.PI]
-  }
-
-  function toDatetimeLocal(iso: string, rounding: 'floor' | 'ceil') {
-    const date = new Date(iso)
-    if (rounding === 'floor') {
-      date.setSeconds(0, 0)
-    } else if (date.getSeconds() || date.getMilliseconds()) {
-      date.setMinutes(date.getMinutes() + 1, 0, 0)
-    }
-    const pad = (n: number) => String(n).padStart(2, '0')
-    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
   }
 
   function numeric(value: any): number | null {
@@ -614,10 +765,6 @@
     <section class="intro card">
       <p class="eyebrow">Group 3 · Seeeduino LoRaWAN</p>
       <h1>Bike comfort map</h1>
-      <p>
-        Explore sampled cycling comfort / road-damage points from FROST exports. Estimated bucket points are useful for route-shaped maps;
-        packet windows keep the original GPS positions.
-      </p>
     </section>
 
     {#if loadError}
@@ -637,6 +784,14 @@
           </span>
         </label>
       {/each}
+      <label class="check-row">
+        <input type="checkbox" bind:checked={showReconstructedRoute} />
+        <span><strong>Reconstructed ride routes</strong><small>Approximate June 27 and July 2 routes reconstructed from phone screenshots and OSM routing.</small></span>
+      </label>
+      <label class="check-row">
+        <input type="checkbox" bind:checked={showColoredSegments} disabled={!showReconstructedRoute} />
+        <span><strong>Colored measured segments</strong><small>Cycling-comfort studies support mapping acceleration summaries onto road segments; this view colors only sections with nearby same-ride measurements.</small></span>
+      </label>
     </section>
 
     <section class="card controls two-col">
@@ -650,6 +805,17 @@
           <option value="vibration">Vibration hit-rate</option>
           <option value="speed">Average speed</option>
         </select>
+        {#if scoreMetric === 'roughness'}
+          <small>Project heuristic (70% RMS, 20% shock, 10% hit-rate), inspired by <a href="https://www.iso.org/obp/ui/#iso:std:iso:2631:-1:ed-2:v1:en" target="_blank" rel="noreferrer">ISO 2631-1</a> but not standards-compliant.</small>
+        {:else if scoreMetric === 'rms'}
+          <small><a href="https://www.iso.org/obp/ui/#iso:std:iso:2631:-1:ed-2:v1:en" target="_blank" rel="noreferrer">ISO 2631-1</a> uses frequency-weighted RMS; this map shows unweighted vertical RMS, so it is a relative proxy only.</small>
+        {:else if scoreMetric === 'peak'}
+          <small><a href="https://www.iso.org/obp/ui/#iso:std:iso:2631:-1:ed-2:v1:en" target="_blank" rel="noreferrer">ISO 2631-1</a> calls for additional evaluation of high-crest-factor vibration; this map’s simple peak is only a shock indicator.</small>
+        {:else if scoreMetric === 'vibration'}
+          <small>SW-420 hit-rate is a project-specific event-density heuristic and is not an ISO 2631 comfort quantity.</small>
+        {:else}
+          <small>Speed is context rather than an ISO comfort measure, but <a href="https://doi.org/10.3390/s24227210" target="_blank" rel="noreferrer">cycling roughness research</a> identifies it as a key influence on measured vibration.</small>
+        {/if}
       </label>
       <label>
         Packet roughness
@@ -657,6 +823,7 @@
           <option value="max">Window max</option>
           <option value="mean">Window mean</option>
         </select>
+        <small>Window max highlights either rough 12.5-second bucket while mean smooths both; this is a project visualization choice, not an ISO rule.</small>
       </label>
       <label>
         Min score
@@ -694,28 +861,20 @@
           </label>
         {/each}
       </div>
-      <label>
-        Start time
-        <input type="datetime-local" bind:value={timeStart} />
+      <label class="check-row">
+        <input type="checkbox" bind:checked={hideStationaryPackets} />
+        <span><strong>Hide stationary packets</strong><small>Disable this refinement to restore all raw packet windows.</small></span>
       </label>
       <label>
-        End time
-        <input type="datetime-local" bind:value={timeEnd} />
-      </label>
-      <label>
-        Minimum ride speed (km/h)
-        <input type="number" min="0" step="0.1" bind:value={minRideSpeedKmh} />
-        <small>Defaults to 1 km/h to hide stationary packet windows from every layer and export.</small>
+        Stationary cutoff (km/h)
+        <input type="number" min="0" step="0.1" bind:value={minRideSpeedKmh} disabled={!hideStationaryPackets} />
+        <small>The 1 km/h default is a project data-cleaning threshold for removing dwell, not a limit defined by ISO 2631-1.</small>
       </label>
       <button type="button" onclick={resetFilters}>Reset view</button>
     </section>
 
     <section class="card controls snap-card">
       <h2>Route snap lab</h2>
-      <p>
-        For multiple rides, use separate uploaded/manual route lines. Snapping only moves displayed points to the nearest route segment within the chosen distance;
-        it does not connect different rides into one continuous route.
-      </p>
       <label class="check-row">
         <input type="checkbox" bind:checked={routeEditMode} />
         <span><strong>Click map to draw a route</strong><small>Use when you know the ride line better than the packet GPS.</small></span>
@@ -724,11 +883,12 @@
       <div class="button-row">
         <button type="button" onclick={() => fileInput.click()}>Upload route GeoJSON</button>
         <button type="button" onclick={undoManualRoutePoint} disabled={!manualRoute.length}>Undo point</button>
-        <button type="button" onclick={clearRoutes} disabled={!routePointCount}>Clear routes</button>
+        <button type="button" onclick={clearRoutes} disabled={!manualRoute.length && !uploadedRoutes.length}>Clear user routes</button>
       </div>
       <label>
         Snap distance: {snapMaxDistanceM} m
         <input type="range" min="5" max="120" step="5" bind:value={snapMaxDistanceM} />
+        <small>Nearest-route projection is an approximate GIS refinement, and reconstructed routes are matched only to measurements from the same ride date.</small>
       </label>
       <label class="check-row">
         <input type="checkbox" bind:checked={snapEnabled} disabled={!canSnap} />
@@ -750,23 +910,12 @@
         {/each}
       </div>
       <div class="button-row exports">
+        <button class="primary-export" type="button" onclick={downloadVisibleGeoJson} disabled={!currentFeatures.length && !routeLineCount}>Export visible map GeoJSON</button>
         <button type="button" onclick={downloadFilteredGeoJson} disabled={!currentFeatures.length}>Download filtered GeoJSON</button>
         <button type="button" onclick={downloadFilteredCsv} disabled={!currentFeatures.length}>Download CSV</button>
         <button type="button" onclick={downloadRouteGeoJson} disabled={!routeLineCount}>Download snap route</button>
         <button type="button" onclick={() => window.print()}>Print / save map</button>
       </div>
-    </section>
-
-    <section class="card note-card">
-      <h2>Read before presenting</h2>
-      <ul>
-        <li>The map shows sampled LoRaWAN uplinks, not continuous route coverage.</li>
-        <li>Estimated bucket points use speed back-projection from one GPS coordinate per packet; weak/poor headings are transparent.</li>
-        <li>Packet windows are conservative: real GPS only, two bucket measurements in properties.</li>
-        <li>Stationary packet windows below 1 km/h are hidden by default; the minimum ride speed filter is adjustable.</li>
-        <li>The roughness proxy is relative and ISO-2631-inspired, not ISO-compliant.</li>
-        <li>Bundled data includes the June 27 and July 2 rides; each ride was exported separately to avoid cross-ride position estimation.</li>
-      </ul>
     </section>
   </aside>
 
@@ -775,9 +924,6 @@
       <div>
         <strong>{visibleLayers.size} layer{visibleLayers.size === 1 ? '' : 's'} active</strong>
         <span>{currentFeatures.length} filtered features</span>
-      </div>
-      <div>
-        <span>OSM tiles · static GitHub Pages app</span>
       </div>
     </div>
     <div class="map" bind:this={mapEl}></div>

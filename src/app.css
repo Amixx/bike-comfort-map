@@ -39,7 +39,6 @@ select {
 
 button,
 select,
-input[type='datetime-local'],
 input[type='number'] {
   border: 1px solid var(--line);
   border-radius: 999px;
@@ -168,8 +167,12 @@ p {
   font-weight: 750;
 }
 
+.controls small a {
+  color: var(--teal);
+  text-underline-offset: 2px;
+}
+
 select,
-input[type='datetime-local'],
 input[type='number'] {
   width: 100%;
   padding: 0.58rem 0.75rem;
@@ -247,12 +250,6 @@ input[type='range'] {
   background: rgba(255, 255, 255, 0.28);
 }
 
-.snap-card p,
-.note-card li {
-  color: var(--muted);
-  line-height: 1.45;
-}
-
 .hidden-input {
   display: none;
 }
@@ -286,6 +283,17 @@ input[type='range'] {
 
 .exports button {
   flex: 1 1 45%;
+}
+
+.exports .primary-export {
+  flex-basis: 100%;
+  border-color: #0f766e;
+  color: #f7f4e8;
+  background: #0f766e;
+}
+
+.exports .primary-export:hover:not(:disabled) {
+  color: var(--ink);
 }
 
 .error {

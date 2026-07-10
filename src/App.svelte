@@ -105,6 +105,7 @@
   let minRideMaxSpeedKmh = 2
   let showReconstructedRoute = true
   let showColoredSegments = true
+  let fillRouteColorGaps = true
   let snapEnabled = false
   let snapMaxDistanceM = 35
   let routeEditMode = false
@@ -131,6 +132,7 @@
     minRideMaxSpeedKmh
     showReconstructedRoute
     showColoredSegments
+    fillRouteColorGaps
     snapEnabled
     snapMaxDistanceM
     manualRoute
@@ -146,9 +148,10 @@
   onMount(async () => {
     map = L.map(mapEl, { zoomControl: false }).setView([48.1482, 11.5655], 14)
     L.control.zoom({ position: 'bottomright' }).addTo(map)
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '&copy; OpenStreetMap contributors',
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
+      subdomains: 'abcd',
+      maxZoom: 20,
+      attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
     }).addTo(map)
     featureLayer.addTo(map)
     routeLayer.addTo(map)
@@ -355,7 +358,7 @@
       L.polyline(route.points, {
         color: route.source === 'reconstructed' ? '#64748b' : '#0f766e',
         weight: route.source === 'reconstructed' ? 5 : 4,
-        opacity: route.source === 'reconstructed' ? 0.45 : 0.8,
+        opacity: route.source === 'reconstructed' ? 0.62 : 0.9,
         dashArray: route.source === 'reconstructed' ? '7 7' : undefined,
       }).bindPopup(route.source === 'reconstructed'
         ? `<div class="popup"><h3>${escapeHtml(route.label)}</h3><p><strong>Ride:</strong> ${escapeHtml(route.rideDate ?? 'unknown')}</p><p>Approximate screenshot reconstruction; no timestamped phone GPS was available.</p></div>`
@@ -375,15 +378,16 @@
       const p = feature.properties
       L.polyline(points, {
         color: colorForScore(p.score_median, p.roughness_class),
-        weight: 8,
-        opacity: p.position_uncertain ? 0.58 : 0.92,
-        dashArray: p.position_uncertain ? '4 5' : undefined,
-      }).bindPopup(`<div class="popup"><h3>Measured road segment</h3>
+        weight: 9,
+        opacity: p.color_estimated ? 0.9 : p.position_uncertain ? 0.82 : 1,
+        dashArray: !p.color_estimated && p.position_uncertain ? '4 5' : undefined,
+      }).bindPopup(`<div class="popup"><h3>${p.color_estimated ? 'Estimated' : 'Measured'} road segment</h3>
         <p><strong>Metric median:</strong> ${escapeHtml(fmt(p.score_median))}</p>
         <p><strong>Samples:</strong> ${p.sample_count}</p>
         <p><strong>Mean match distance:</strong> ${escapeHtml(fmt(p.mean_match_distance_m))} m</p>
         <p><strong>Ride:</strong> ${escapeHtml(p.ride_date)}</p>
-        ${p.position_uncertain ? '<p><strong>Warning:</strong> dashed because all contributing positions have uncertain headings.</p>' : ''}
+        ${p.color_estimated ? '<p><strong>Estimate:</strong> interpolated from the nearest measured route segments.</p>' : ''}
+        ${!p.color_estimated && p.position_uncertain ? '<p><strong>Warning:</strong> dashed because all contributing positions have uncertain headings.</p>' : ''}
       </div>`).addTo(routeLayer)
     }
   }
@@ -414,11 +418,31 @@
         bySegment.set(match.segmentIndex, values)
       }
 
-      for (const [segmentIndex, values] of bySegment) {
-        const score = median(values.scores)
+      const measuredIndexes = [...bySegment.keys()].sort((a, b) => a - b)
+      const segmentIndexes = fillRouteColorGaps && measuredIndexes.length
+        ? Array.from({ length: route.points.length - 1 }, (_, index) => index)
+        : measuredIndexes
+
+      for (const segmentIndex of segmentIndexes) {
+        const directValues = bySegment.get(segmentIndex)
+        const lowerIndex = measuredIndexes.findLast((index) => index < segmentIndex)
+        const upperIndex = measuredIndexes.find((index) => index > segmentIndex)
+        const lowerValues = lowerIndex == null ? undefined : bySegment.get(lowerIndex)
+        const upperValues = upperIndex == null ? undefined : bySegment.get(upperIndex)
+        const values = directValues ?? lowerValues ?? upperValues
+        if (!values) continue
+
+        let score = median(values.scores)
+        const sourceValues = directValues ? [directValues] : [lowerValues, upperValues].filter(Boolean) as { scores: number[]; distances: number[]; qualities: string[] }[]
+        if (!directValues && lowerValues && upperValues && lowerIndex != null && upperIndex != null) {
+          const progress = (segmentIndex - lowerIndex) / (upperIndex - lowerIndex)
+          score = median(lowerValues.scores) + (median(upperValues.scores) - median(lowerValues.scores)) * progress
+        }
+        const allDistances = sourceValues.flatMap((source) => source.distances)
+        const allQualities = sourceValues.flatMap((source) => source.qualities)
         const roughnessClass = classForScore(score)
-        const meanDistance = values.distances.reduce((sum, value) => sum + value, 0) / values.distances.length
-        const uncertain = values.qualities.every((quality) => quality !== 'good')
+        const meanDistance = allDistances.reduce((sum, value) => sum + value, 0) / allDistances.length
+        const uncertain = allQualities.every((quality) => quality !== 'good')
         segmentFeatures.push({
           type: 'Feature',
           geometry: {
@@ -433,9 +457,11 @@
             score_metric: scoreMetric,
             score_median: score,
             roughness_class: roughnessClass,
-            sample_count: values.scores.length,
+            sample_count: sourceValues.reduce((sum, source) => sum + source.scores.length, 0),
             mean_match_distance_m: Math.round(meanDistance * 10) / 10,
             position_uncertain: uncertain,
+            color_estimated: !directValues,
+            color_source_segment_indexes: directValues ? [segmentIndex] : [lowerIndex, upperIndex].filter((index) => index != null),
             match_max_distance_m: snapMaxDistanceM,
           },
         })
@@ -591,6 +617,7 @@
         minimum_packet_max_speed_kmh: hideStationaryPackets ? minRideMaxSpeedKmh : null,
         point_snapping_enabled: snapEnabled,
         colored_segments_enabled: showColoredSegments && showReconstructedRoute,
+        route_color_gaps_filled: fillRouteColorGaps && showColoredSegments && showReconstructedRoute,
         warning: 'Reconstructed routes, snapped positions, and colored segments are approximate refinements; original coordinates remain in snap_original_* properties when snapping is enabled.',
       },
       features: [...routeFeatures, ...getMeasuredSegmentFeatures(), ...currentFeatures],
@@ -791,7 +818,11 @@
       </label>
       <label class="check-row">
         <input type="checkbox" bind:checked={showColoredSegments} disabled={!showReconstructedRoute} />
-        <span><strong>Colored measured segments</strong><small>Cycling-comfort studies support mapping acceleration summaries onto road segments; this view colors only sections with nearby same-ride measurements.</small></span>
+        <span><strong>Colored measured segments</strong><small><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC12526540/" target="_blank" rel="noreferrer">Cycling comfort mapping research</a> supports road-segment summaries; evidence-only mode requires a nearby same-ride measurement.</small></span>
+      </label>
+      <label class="check-row">
+        <input type="checkbox" bind:checked={fillRouteColorGaps} disabled={!showReconstructedRoute || !showColoredSegments} />
+        <span><strong>Estimate colors around full route</strong><small>Fills unmeasured sections by interpolating the nearest same-ride segment colors; disable for evidence-only coloring.</small></span>
       </label>
     </section>
 

@@ -12,7 +12,7 @@ Proposed repo name: `bike-comfort-map`.
 - Roughness, RMS, peak acceleration, vibration, and speed coloring
 - Quality, roughness class, and score filters; all ride dates are always included
 - Adjustable packet maximum-speed filter (2 km/h by default) to exclude windows whose maximum speed stays below the threshold consistently across layers and exports
-- Toggleable June 27 and July 2 screenshot-route reconstructions with conservative, same-ride measurement-colored road segments
+- Toggleable June 27 and July 2 screenshot-route reconstructions with same-ride measurement-colored road segments and an optional full-route color interpolation
 - Optional route snapping from a manually clicked or uploaded GeoJSON LineString route
 - Visible-map GeoJSON export containing the displayed routes, measured segments, and filtered/snapped points, plus filtered GeoJSON / CSV exports
 
@@ -36,7 +36,7 @@ The production build is written to `docs/`. In GitHub, set Pages to deploy from 
 
 ## Map tiles
 
-The app uses OpenStreetMap raster tiles (`https://tile.openstreetmap.org`). That is free and needs no key for a small project/demo. If the page becomes high-traffic, switch to a dedicated tile provider.
+The app uses CARTO's label-free light raster tiles, based on OpenStreetMap data, to keep the measurement overlay legible. If the page becomes high-traffic, switch to a dedicated tile plan.
 
 ## Updating data later
 

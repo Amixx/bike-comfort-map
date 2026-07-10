@@ -592,7 +592,7 @@
     if (!viewBeforePrint) viewBeforePrint = { center: map.getCenter(), zoom: map.getZoom() }
     const bounds = L.latLngBounds(reconstructedRoutes.flatMap((route) => route.points))
     map.invalidateSize({ animate: false })
-    map.fitBounds(bounds, { animate: false, padding: [12, 12] })
+    map.fitBounds(bounds, { animate: false, padding: [24, 24] })
   }
 
   function restoreInteractiveView() {

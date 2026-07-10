@@ -26,13 +26,14 @@
     points: [number, number][]
     rideDate?: string
     label: string
-    source: 'reconstructed' | 'uploaded' | 'manual'
+    source: 'reconstructed'
   }
 
   const reconstructedRouteFiles = [
     '/data/group3-bike-comfort-ride-2026-06-27-reconstructed-route.geojson',
     '/data/group3-bike-comfort-ride-2026-07-02-reconstructed-route.geojson',
   ]
+  const snapMaxDistanceM = 35
 
   const dataSources: Record<LayerId, { label: string; files: string[]; help: string }> = {
     bucket: {
@@ -85,7 +86,6 @@
   const classOrder = ['low roughness', 'moderate roughness', 'high roughness', 'very high roughness']
 
   let mapEl: HTMLDivElement
-  let fileInput: HTMLInputElement
   let map: L.Map
   let featureLayer = L.layerGroup()
   let routeLayer = L.layerGroup()
@@ -104,10 +104,6 @@
   let showColoredSegments = true
   let fillRouteColorGaps = true
   let snapEnabled = false
-  let snapMaxDistanceM = 35
-  let routeEditMode = false
-  let manualRoute: [number, number][] = []
-  let uploadedRoutes: [number, number][][] = []
   let reconstructedRoutes: RouteDefinition[] = []
   let currentFeatures: GeoJsonFeature[] = []
   let snappedPointCount = 0
@@ -115,7 +111,7 @@
   let hasFitted = false
 
   $: stats = buildStats(currentFeatures)
-  $: routeLineCount = (manualRoute.length > 1 ? 1 : 0) + uploadedRoutes.filter((route) => route.length > 1).length + reconstructedRoutes.filter((route) => route.points.length > 1).length
+  $: routeLineCount = reconstructedRoutes.filter((route) => route.points.length > 1).length
   $: canSnap = routeLineCount > 0
   $: {
     visibleLayers
@@ -129,9 +125,6 @@
     showColoredSegments
     fillRouteColorGaps
     snapEnabled
-    snapMaxDistanceM
-    manualRoute
-    uploadedRoutes
     reconstructedRoutes
     data
     if (map && !isLoading) {
@@ -150,10 +143,6 @@
     }).addTo(map)
     featureLayer.addTo(map)
     routeLayer.addTo(map)
-    map.on('click', (event: L.LeafletMouseEvent) => {
-      if (!routeEditMode) return
-      manualRoute = [...manualRoute, [event.latlng.lat, event.latlng.lng]]
-    })
 
     try {
       const [entries, reconstructedRouteCollections] = await Promise.all([
@@ -264,7 +253,7 @@
       cloned.properties.snap_original_longitude = lng
       cloned.properties.snap_original_latitude = lat
       cloned.properties.snap_distance_m = Math.round(snap.distanceM * 10) / 10
-      cloned.properties.snap_method = 'nearest point on reconstructed or user-provided route'
+      cloned.properties.snap_method = 'nearest point on same-date reconstructed route'
     }
     return cloned
   }
@@ -328,11 +317,6 @@
       }).bindPopup(route.source === 'reconstructed'
         ? `<div class="popup"><h3>${escapeHtml(route.label)}</h3><p><strong>Ride:</strong> ${escapeHtml(route.rideDate ?? 'unknown')}</p><p>Approximate screenshot reconstruction; no timestamped phone GPS was available.</p></div>`
         : `<div class="popup"><h3>${escapeHtml(route.label)}</h3></div>`).addTo(routeLayer)
-    }
-    if (manualRoute.length) {
-      for (const latlng of manualRoute) {
-        L.circleMarker(latlng, { radius: 4, color: '#0f766e', fillColor: '#ccfbf1', fillOpacity: 1, weight: 2 }).addTo(routeLayer)
-      }
     }
   }
 
@@ -449,12 +433,7 @@
   }
 
   function allRouteDefinitions(): RouteDefinition[] {
-    const routes: RouteDefinition[] = [
-      ...reconstructedRoutes,
-      ...uploadedRoutes.map((points, index) => ({ points, label: `Uploaded route ${index + 1}`, source: 'uploaded' as const })),
-    ]
-    if (manualRoute.length > 1) routes.push({ points: manualRoute, label: 'Manual route', source: 'manual' })
-    return routes
+    return reconstructedRoutes
   }
 
   function getTime(feature: GeoJsonFeature) {
@@ -613,15 +592,6 @@
     downloadBlob(csv, 'group3-bike-comfort-filtered.csv', 'text/csv')
   }
 
-  function downloadRouteGeoJson() {
-    const features = allRouteDefinitions().map((route, index) => ({
-      type: 'Feature',
-      geometry: { type: 'LineString', coordinates: route.points.map(([lat, lng]) => [lng, lat]) },
-      properties: { route_index: index + 1, source: route.source, ride_date: route.rideDate ?? null, label: route.label },
-    }))
-    downloadBlob(JSON.stringify({ type: 'FeatureCollection', features }, null, 2), 'group3-bike-comfort-snap-route.geojson', 'application/geo+json')
-  }
-
   function downloadBlob(body: string, name: string, type: string) {
     const blob = new Blob([body], { type })
     const url = URL.createObjectURL(blob)
@@ -630,16 +600,6 @@
     a.download = name
     a.click()
     URL.revokeObjectURL(url)
-  }
-
-  async function uploadRoute(event: Event) {
-    const input = event.target as HTMLInputElement
-    const file = input.files?.[0]
-    if (!file) return
-    const parsed = JSON.parse(await file.text())
-    const routes = extractRoutes(parsed)
-    uploadedRoutes = [...uploadedRoutes, ...routes]
-    input.value = ''
   }
 
   function extractRoutes(value: any): [number, number][][] {
@@ -661,16 +621,6 @@
         source: 'reconstructed' as const,
       }))
     })
-  }
-
-  function clearRoutes() {
-    manualRoute = []
-    uploadedRoutes = []
-    snapEnabled = false
-  }
-
-  function undoManualRoutePoint() {
-    manualRoute = manualRoute.slice(0, -1)
   }
 
   function findNearestRoutePoint(point: [number, number], rideDate?: string) {
@@ -785,6 +735,10 @@
         <input type="checkbox" bind:checked={fillRouteColorGaps} disabled={!showReconstructedRoute || !showColoredSegments} />
         <span><strong>Estimate colors around full route</strong><small>Fills unmeasured sections by interpolating the nearest same-ride segment colors; disable for evidence-only coloring.</small></span>
       </label>
+      <label class="check-row">
+        <input type="checkbox" bind:checked={snapEnabled} disabled={!canSnap} />
+        <span><strong>Snap points to reconstructed routes</strong><small>{snapEnabled ? `${snappedPointCount}/${totalPointCount} visible points snapped` : 'Show original point positions'}</small></span>
+      </label>
     </section>
 
     <section class="card controls two-col">
@@ -845,29 +799,6 @@
       <button type="button" onclick={resetFilters}>Reset view</button>
     </section>
 
-    <section class="card controls snap-card">
-      <h2>Route snap lab</h2>
-      <label class="check-row">
-        <input type="checkbox" bind:checked={routeEditMode} />
-        <span><strong>Click map to draw a route</strong><small>Use when you know the ride line better than the packet GPS.</small></span>
-      </label>
-      <input class="hidden-input" bind:this={fileInput} type="file" accept=".geojson,.json,application/geo+json,application/json" onchange={uploadRoute} />
-      <div class="button-row">
-        <button type="button" onclick={() => fileInput.click()}>Upload route GeoJSON</button>
-        <button type="button" onclick={undoManualRoutePoint} disabled={!manualRoute.length}>Undo point</button>
-        <button type="button" onclick={clearRoutes} disabled={!manualRoute.length && !uploadedRoutes.length}>Clear user routes</button>
-      </div>
-      <label>
-        Snap distance: {snapMaxDistanceM} m
-        <input type="range" min="5" max="120" step="5" bind:value={snapMaxDistanceM} />
-        <small>Nearest-route projection is an approximate GIS refinement, and reconstructed routes are matched only to measurements from the same ride date.</small>
-      </label>
-      <label class="check-row">
-        <input type="checkbox" bind:checked={snapEnabled} disabled={!canSnap} />
-        <span><strong>Snap points to route</strong><small>{canSnap ? `${snappedPointCount}/${totalPointCount} points snapped` : 'Draw or upload a route first'}</small></span>
-      </label>
-    </section>
-
     <section class="card stats-card">
       <h2>Current selection</h2>
       <div class="stat-grid">
@@ -885,7 +816,6 @@
         <button class="primary-export" type="button" onclick={downloadVisibleGeoJson} disabled={!currentFeatures.length && !routeLineCount}>Export visible map GeoJSON</button>
         <button type="button" onclick={downloadFilteredGeoJson} disabled={!currentFeatures.length}>Download filtered GeoJSON</button>
         <button type="button" onclick={downloadFilteredCsv} disabled={!currentFeatures.length}>Download CSV</button>
-        <button type="button" onclick={downloadRouteGeoJson} disabled={!routeLineCount}>Download snap route</button>
         <button type="button" onclick={() => window.print()}>Print / save map</button>
       </div>
     </section>

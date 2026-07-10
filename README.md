@@ -13,7 +13,7 @@ Proposed repo name: `bike-comfort-map`.
 - Adjustable score range with all ride dates and position-quality classes always included
 - Adjustable packet maximum-speed filter (2 km/h by default) to exclude windows whose maximum speed stays below the threshold consistently across layers and exports
 - Toggleable June 27 and July 2 screenshot-route reconstructions with same-ride measurement-colored road segments and an optional full-route color interpolation
-- Optional route snapping from a manually clicked or uploaded GeoJSON LineString route
+- Optional point snapping to the bundled same-date reconstructed route, using a fixed 35 m safeguard
 - Visible-map GeoJSON export containing the displayed routes, measured segments, and filtered/snapped points, plus filtered GeoJSON / CSV exports
 
 The app bundles static GeoJSON files in `public/data`, so it works on GitHub Pages without VPN or FROST CORS access. The browser never calls the FROST API. The June 27 and July 2 rides are exported separately so position estimation never crosses the gap between rides. Regenerate or add files locally while connected to the university VPN when adding another ride.

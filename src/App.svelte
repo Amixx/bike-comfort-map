@@ -102,7 +102,7 @@
   let minScore = 0
   let maxScore = 1
   let hideStationaryPackets = true
-  let minRideSpeedKmh = 1
+  let minRideMaxSpeedKmh = 2
   let showReconstructedRoute = true
   let showColoredSegments = true
   let snapEnabled = false
@@ -128,7 +128,7 @@
     minScore
     maxScore
     hideStationaryPackets
-    minRideSpeedKmh
+    minRideMaxSpeedKmh
     showReconstructedRoute
     showColoredSegments
     snapEnabled
@@ -230,7 +230,7 @@
     minScore = 0
     maxScore = 1
     hideStationaryPackets = true
-    minRideSpeedKmh = 1
+    minRideMaxSpeedKmh = 2
   }
 
   function getFilteredFeatures() {
@@ -256,11 +256,11 @@
         layerOrder.flatMap((id) => data[id]?.features ?? []).map((feature) => feature.properties.packet_time).filter(Boolean),
       )
     }
-    const minimumSpeed = numeric(minRideSpeedKmh) ?? 0
+    const minimumSpeed = numeric(minRideMaxSpeedKmh) ?? 0
     return new Set(
       layerOrder
         .flatMap((id) => data[id]?.features ?? [])
-        .filter((feature) => (numeric(feature.properties.avg_speed_kmh_window) ?? -Infinity) >= minimumSpeed)
+        .filter((feature) => (numeric(feature.properties.max_speed_kmh_window) ?? -Infinity) >= minimumSpeed)
         .map((feature) => feature.properties.packet_time)
         .filter(Boolean),
     )
@@ -587,8 +587,8 @@
         exported_at: new Date().toISOString(),
         export_scope: 'visible filtered map data',
         score_metric: scoreMetric,
-        stationary_filter_enabled: hideStationaryPackets,
-        stationary_cutoff_kmh: hideStationaryPackets ? minRideSpeedKmh : null,
+        low_speed_filter_enabled: hideStationaryPackets,
+        minimum_packet_max_speed_kmh: hideStationaryPackets ? minRideMaxSpeedKmh : null,
         point_snapping_enabled: snapEnabled,
         colored_segments_enabled: showColoredSegments && showReconstructedRoute,
         warning: 'Reconstructed routes, snapped positions, and colored segments are approximate refinements; original coordinates remain in snap_original_* properties when snapping is enabled.',
@@ -616,6 +616,7 @@
           vertical_accel_peak_g: layerId === 'packet' ? feature.properties.vertical_accel_peak_g_window_max : feature.properties.vertical_accel_peak_g,
           vibration_hit_rate_pct: layerId === 'packet' ? feature.properties.vibration_hit_rate_pct_window_mean : feature.properties.vibration_hit_rate_pct,
           avg_speed_kmh_window: feature.properties.avg_speed_kmh_window,
+          max_speed_kmh_window: feature.properties.max_speed_kmh_window,
           snap_distance_m: feature.properties.snap_distance_m ?? '',
         }
       })
@@ -863,12 +864,12 @@
       </div>
       <label class="check-row">
         <input type="checkbox" bind:checked={hideStationaryPackets} />
-        <span><strong>Hide stationary packets</strong><small>Disable this refinement to restore all raw packet windows.</small></span>
+        <span><strong>Hide low-speed packets</strong><small>Disable this refinement to restore all raw packet windows.</small></span>
       </label>
       <label>
-        Stationary cutoff (km/h)
-        <input type="number" min="0" step="0.1" bind:value={minRideSpeedKmh} disabled={!hideStationaryPackets} />
-        <small>The 1 km/h default is a project data-cleaning threshold for removing dwell, not a limit defined by ISO 2631-1.</small>
+        Minimum packet max speed (km/h)
+        <input type="number" min="0" step="0.1" bind:value={minRideMaxSpeedKmh} disabled={!hideStationaryPackets} />
+        <small>The 2 km/h default removes a packet only when its maximum—not average—speed stays below the threshold; this is a project cleaning rule, not ISO 2631-1.</small>
       </label>
       <button type="button" onclick={resetFilters}>Reset view</button>
     </section>

@@ -22,25 +22,37 @@
   type ScoreMetric = 'roughness' | 'rms' | 'peak' | 'vibration' | 'speed'
   type PacketRoughnessMode = 'max' | 'mean'
 
-  const dataSources: Record<LayerId, { label: string; file: string; help: string }> = {
+  const dataSources: Record<LayerId, { label: string; files: string[]; help: string }> = {
     bucket: {
       label: 'Estimated bucket points',
-      file: '/data/group3-bike-comfort-final-speed-estimated.geojson',
+      files: [
+        '/data/group3-bike-comfort-final-speed-estimated.geojson',
+        '/data/group3-bike-comfort-latest-speed-estimated.geojson',
+      ],
       help: 'Two 12.5s bucket centers per uplink, positioned by speed back-projection.',
     },
     packet: {
       label: 'Raw packet windows',
-      file: '/data/group3-bike-comfort-final-packet-windows.geojson',
+      files: [
+        '/data/group3-bike-comfort-final-packet-windows.geojson',
+        '/data/group3-bike-comfort-latest-packet-windows.geojson',
+      ],
       help: 'One real GPS point per uplink with both bucket values attached.',
     },
     gps: {
       label: 'Real packet GPS dots',
-      file: '/data/group3-bike-comfort-final-real-packet-gps.geojson',
+      files: [
+        '/data/group3-bike-comfort-final-real-packet-gps.geojson',
+        '/data/group3-bike-comfort-latest-real-packet-gps.geojson',
+      ],
       help: 'Actual packet coordinates only.',
     },
     connectors: {
       label: 'Diagnostic connectors',
-      file: '/data/group3-bike-comfort-final-packet-connectors.geojson',
+      files: [
+        '/data/group3-bike-comfort-final-packet-connectors.geojson',
+        '/data/group3-bike-comfort-latest-packet-connectors.geojson',
+      ],
       help: 'Dashed provenance lines from bucket 0 → bucket 1 → packet GPS. Not route geometry.',
     },
   }
@@ -81,6 +93,7 @@
   let fullTimeEnd = ''
   let minScore = 0
   let maxScore = 1
+  let minRideSpeedKmh = 1
   let snapEnabled = false
   let snapMaxDistanceM = 35
   let routeEditMode = false
@@ -105,6 +118,7 @@
     timeEnd
     minScore
     maxScore
+    minRideSpeedKmh
     snapEnabled
     snapMaxDistanceM
     manualRoute
@@ -133,9 +147,14 @@
     try {
       const entries = await Promise.all(
         layerOrder.map(async (id) => {
-          const response = await fetch(withBase(dataSources[id].file))
-          if (!response.ok) throw new Error(`${dataSources[id].file}: ${response.status}`)
-          return [id, await response.json()] as const
+          const collections = await Promise.all(
+            dataSources[id].files.map(async (file) => {
+              const response = await fetch(withBase(file))
+              if (!response.ok) throw new Error(`${file}: ${response.status}`)
+              return response.json() as Promise<FeatureCollection>
+            }),
+          )
+          return [id, { type: 'FeatureCollection', features: collections.flatMap((collection) => collection.features) }] as const
         }),
       )
       data = Object.fromEntries(entries) as Record<LayerId, FeatureCollection>
@@ -203,6 +222,7 @@
     packetRoughnessMode = 'max'
     minScore = 0
     maxScore = 1
+    minRideSpeedKmh = 1
     timeStart = fullTimeStart
     timeEnd = fullTimeEnd
   }
@@ -210,6 +230,14 @@
   function getFilteredFeatures() {
     const start = timeStart ? new Date(timeStart).getTime() : -Infinity
     const end = timeEnd ? new Date(timeEnd).getTime() : Infinity
+    const minimumSpeed = numeric(minRideSpeedKmh) ?? 0
+    const movingPacketTimes = new Set(
+      layerOrder
+        .flatMap((id) => data[id]?.features ?? [])
+        .filter((feature) => (numeric(feature.properties.avg_speed_kmh_window) ?? -Infinity) >= minimumSpeed)
+        .map((feature) => feature.properties.packet_time)
+        .filter(Boolean),
+    )
     const out: GeoJsonFeature[] = []
     snappedPointCount = 0
     totalPointCount = 0
@@ -217,6 +245,9 @@
     for (const layerId of layerOrder) {
       if (!visibleLayers.has(layerId)) continue
       for (const feature of data[layerId]?.features ?? []) {
+        const packetTime = feature.properties.packet_time
+        if (packetTime && !movingPacketTimes.has(packetTime)) continue
+
         const t = getTime(feature)
         const millis = t ? new Date(t).getTime() : NaN
         if (Number.isFinite(millis) && (millis < start || millis > end)) continue
@@ -671,6 +702,11 @@
         End time
         <input type="datetime-local" bind:value={timeEnd} />
       </label>
+      <label>
+        Minimum ride speed (km/h)
+        <input type="number" min="0" step="0.1" bind:value={minRideSpeedKmh} />
+        <small>Defaults to 1 km/h to hide stationary packet windows from every layer and export.</small>
+      </label>
       <button type="button" onclick={resetFilters}>Reset view</button>
     </section>
 
@@ -727,8 +763,9 @@
         <li>The map shows sampled LoRaWAN uplinks, not continuous route coverage.</li>
         <li>Estimated bucket points use speed back-projection from one GPS coordinate per packet; weak/poor headings are transparent.</li>
         <li>Packet windows are conservative: real GPS only, two bucket measurements in properties.</li>
+        <li>Stationary packet windows below 1 km/h are hidden by default; the minimum ride speed filter is adjustable.</li>
         <li>The roughness proxy is relative and ISO-2631-inspired, not ISO-compliant.</li>
-        <li>Bundled data starts after the final-ride cutoff; regenerate exports locally when adding the ongoing ride.</li>
+        <li>Bundled data includes the June 27 and July 2 rides; each ride was exported separately to avoid cross-ride position estimation.</li>
       </ul>
     </section>
   </aside>

@@ -6,15 +6,16 @@ Proposed repo name: `bike-comfort-map`.
 
 ## What it shows
 
-- Estimated bucket-level points from `group3-bike-comfort-final-speed-estimated.geojson`
-- Raw packet/window points from `group3-bike-comfort-final-packet-windows.geojson`
+- Estimated bucket-level points from the separately exported June 27 and July 2 rides
+- Raw packet/window points from both rides
 - Optional real packet GPS dots and diagnostic bucket→packet connector lines
 - Roughness, RMS, peak acceleration, vibration, and speed coloring
 - Quality, roughness class, time, and score filters
+- Adjustable minimum ride-speed filter (1 km/h by default) to exclude stationary measurements consistently across layers and exports
 - Optional route snapping from a manually clicked or uploaded GeoJSON LineString route
 - Filtered GeoJSON / CSV export
 
-The app bundles static GeoJSON files in `public/data`, so it works on GitHub Pages without VPN or FROST CORS access. The browser never calls the FROST API. Regenerate or replace those files locally while connected to the university VPN when adding a new ride.
+The app bundles static GeoJSON files in `public/data`, so it works on GitHub Pages without VPN or FROST CORS access. The browser never calls the FROST API. The June 27 and July 2 rides are exported separately so position estimation never crosses the gap between rides. Regenerate or add files locally while connected to the university VPN when adding another ride.
 
 ## Local development
 

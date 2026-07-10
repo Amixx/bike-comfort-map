@@ -1,0 +1,823 @@
+{
+  "type": "FeatureCollection",
+  "name": "Group 3 Bike Sensor latest packet-window comfort points",
+  "metadata": {
+    "created_utc": "2026-07-10T13:32:54.333162Z",
+    "source": "https://gi3.gis.lrg.tum.de/frost/v1.1",
+    "thing_id": 678,
+    "latest_10_bucket_timestamp_detected": null,
+    "feature_model": "rawer packet-level handoff: one point per received uplink/window at the real packet GPS coordinate",
+    "position_model": "speed backprojection from current packet GPS; distance uses avg_speed_kmh_window and bucket center offset; heading uses reverse previous-to-current GPS bearing",
+    "packet_drop_handling": "dropped packets are not hidden; larger previous/current gaps are recorded in interpolation_gap_s and downgraded in position_estimation_quality",
+    "feature_count": 10,
+    "packet_count": 10,
+    "position_quality_counts": {
+      "unknown_no_previous_heading": 2,
+      "good": 10,
+      "weak_heading_may_span_turn": 2,
+      "poor_heading_from_large_gap": 6
+    },
+    "first_packet_time": "2026-07-02T15:32:35.351763Z",
+    "last_packet_time": "2026-07-02T16:02:32.845494Z",
+    "roughness_proxy_warning": "relative map helper only; ISO-2631-inspired RMS emphasis but not standards-compliant",
+    "roughness_proxy_scales": {
+      "bucket_rms_p90_g": 0.6140000000000001,
+      "bucket_peak_p90_g": 6.482000000000001
+    },
+    "bucket_geometry": "no bucket geometry; both bucket values are properties on the packet GPS point",
+    "ride_start_local_assumed": "2026-07-02 17:30 Europe/Berlin",
+    "ride_start_utc": "2026-07-02T15:30:00Z"
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.5827,
+          48.1542
+        ]
+      },
+      "properties": {
+        "packet_time": "2026-07-02T15:32:35.351763Z",
+        "feature_type": "raw_packet_window",
+        "measurement_model": "one real packet GPS point with two 12.5s measurement buckets from the previous 25s window",
+        "geometry_note": "Geometry is the real GPS coordinate included in the packet, not an estimated bucket position.",
+        "bucket_count": 2,
+        "bucket_duration_s": 12.5,
+        "window_duration_s": 25.0,
+        "bucket_0_center_offset_s_before_packet": 18.75,
+        "bucket_1_center_offset_s_before_packet": 6.25,
+        "packet_longitude": 11.5827,
+        "packet_latitude": 48.1542,
+        "previous_packet_time": null,
+        "previous_packet_longitude": null,
+        "previous_packet_latitude": null,
+        "interpolation_gap_s": null,
+        "position_estimation_quality": "unknown_no_previous_heading",
+        "thing_id": 678,
+        "frost_historical_location_id": 242879,
+        "frost_location_id": 242888,
+        "avg_speed_kmh_window": 0,
+        "max_speed_kmh_window": 0,
+        "gyro_peak_dps_raw_window": 5.59,
+        "gyro_peak_dps_interpreted_window": 5.59,
+        "vertical_accel_peak_g_bucket_0_older": 0.03,
+        "vertical_accel_peak_g_bucket_1_newer": 0.02,
+        "vibration_hit_rate_pct_bucket_0_older": 0.14,
+        "vibration_hit_rate_pct_bucket_1_newer": 0,
+        "vertical_accel_rms_g_bucket_0_older": 0,
+        "vertical_accel_rms_g_bucket_1_newer": 0,
+        "roughness_proxy_0_1_bucket_0_older": 0.0011,
+        "roughness_proxy_0_1_bucket_1_newer": 0.0006,
+        "vertical_accel_peak_g_buckets_old_to_new": [
+          0.03,
+          0.02
+        ],
+        "vibration_hit_rate_pct_buckets_old_to_new": [
+          0.14,
+          0
+        ],
+        "vertical_accel_rms_g_buckets_old_to_new": [
+          0,
+          0
+        ],
+        "roughness_proxy_0_1_buckets_old_to_new": [
+          0.0011,
+          0.0006
+        ],
+        "vertical_accel_peak_g_window_max": 0.03,
+        "vertical_accel_peak_g_window_mean": 0.025,
+        "vibration_hit_rate_pct_window_max": 0.14,
+        "vibration_hit_rate_pct_window_mean": 0.07,
+        "vertical_accel_rms_g_window_rms_combined": 0.0,
+        "vertical_accel_rms_g_window_mean": 0.0,
+        "roughness_proxy_0_1_window_max": 0.0011,
+        "roughness_proxy_0_1_window_mean": 0.0009,
+        "roughness_proxy_note": "packet-level helper fields summarize the two bucket roughness values; use bucket-level GeoJSON if spatial separation is desired",
+        "vertical_accel_rms_mps2_window_rms_combined_unweighted": 0.0,
+        "vertical_accel_peak_mps2_window_max_unweighted": 0.2942,
+        "humidity_pct_latest_context": null,
+        "humidity_pct_latest_context_time": null,
+        "humidity_pct_latest_context_age_s": null,
+        "temperature_c_latest_context": null,
+        "temperature_c_latest_context_time": null,
+        "temperature_c_latest_context_age_s": null,
+        "roughness_proxy_class_window_max": "low roughness",
+        "suggested_color_hex_window_max": "#2ca25f",
+        "ride_date": "2026-07-02"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.5827,
+          48.1542
+        ]
+      },
+      "properties": {
+        "packet_time": "2026-07-02T15:34:00.901494Z",
+        "feature_type": "raw_packet_window",
+        "measurement_model": "one real packet GPS point with two 12.5s measurement buckets from the previous 25s window",
+        "geometry_note": "Geometry is the real GPS coordinate included in the packet, not an estimated bucket position.",
+        "bucket_count": 2,
+        "bucket_duration_s": 12.5,
+        "window_duration_s": 25.0,
+        "bucket_0_center_offset_s_before_packet": 18.75,
+        "bucket_1_center_offset_s_before_packet": 6.25,
+        "packet_longitude": 11.5827,
+        "packet_latitude": 48.1542,
+        "previous_packet_time": "2026-07-02T15:32:35.351763Z",
+        "previous_packet_longitude": 11.5827,
+        "previous_packet_latitude": 48.1542,
+        "interpolation_gap_s": 85.55,
+        "position_estimation_quality": "good",
+        "thing_id": 678,
+        "frost_historical_location_id": 242881,
+        "frost_location_id": 242890,
+        "avg_speed_kmh_window": 0,
+        "max_speed_kmh_window": 0,
+        "gyro_peak_dps_raw_window": 2.51,
+        "gyro_peak_dps_interpreted_window": 2.51,
+        "vertical_accel_peak_g_bucket_0_older": 0.01,
+        "vertical_accel_peak_g_bucket_1_newer": 0.01,
+        "vibration_hit_rate_pct_bucket_0_older": 0,
+        "vibration_hit_rate_pct_bucket_1_newer": 0,
+        "vertical_accel_rms_g_bucket_0_older": 0,
+        "vertical_accel_rms_g_bucket_1_newer": 0,
+        "roughness_proxy_0_1_bucket_0_older": 0.0003,
+        "roughness_proxy_0_1_bucket_1_newer": 0.0003,
+        "vertical_accel_peak_g_buckets_old_to_new": [
+          0.01,
+          0.01
+        ],
+        "vibration_hit_rate_pct_buckets_old_to_new": [
+          0,
+          0
+        ],
+        "vertical_accel_rms_g_buckets_old_to_new": [
+          0,
+          0
+        ],
+        "roughness_proxy_0_1_buckets_old_to_new": [
+          0.0003,
+          0.0003
+        ],
+        "vertical_accel_peak_g_window_max": 0.01,
+        "vertical_accel_peak_g_window_mean": 0.01,
+        "vibration_hit_rate_pct_window_max": 0,
+        "vibration_hit_rate_pct_window_mean": 0.0,
+        "vertical_accel_rms_g_window_rms_combined": 0.0,
+        "vertical_accel_rms_g_window_mean": 0.0,
+        "roughness_proxy_0_1_window_max": 0.0003,
+        "roughness_proxy_0_1_window_mean": 0.0003,
+        "roughness_proxy_note": "packet-level helper fields summarize the two bucket roughness values; use bucket-level GeoJSON if spatial separation is desired",
+        "vertical_accel_rms_mps2_window_rms_combined_unweighted": 0.0,
+        "vertical_accel_peak_mps2_window_max_unweighted": 0.0981,
+        "humidity_pct_latest_context": null,
+        "humidity_pct_latest_context_time": null,
+        "humidity_pct_latest_context_age_s": null,
+        "temperature_c_latest_context": null,
+        "temperature_c_latest_context_time": null,
+        "temperature_c_latest_context_age_s": null,
+        "roughness_proxy_class_window_max": "low roughness",
+        "suggested_color_hex_window_max": "#2ca25f",
+        "ride_date": "2026-07-02"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.5827,
+          48.1542
+        ]
+      },
+      "properties": {
+        "packet_time": "2026-07-02T15:35:26.363491Z",
+        "feature_type": "raw_packet_window",
+        "measurement_model": "one real packet GPS point with two 12.5s measurement buckets from the previous 25s window",
+        "geometry_note": "Geometry is the real GPS coordinate included in the packet, not an estimated bucket position.",
+        "bucket_count": 2,
+        "bucket_duration_s": 12.5,
+        "window_duration_s": 25.0,
+        "bucket_0_center_offset_s_before_packet": 18.75,
+        "bucket_1_center_offset_s_before_packet": 6.25,
+        "packet_longitude": 11.5827,
+        "packet_latitude": 48.1542,
+        "previous_packet_time": "2026-07-02T15:34:00.901494Z",
+        "previous_packet_longitude": 11.5827,
+        "previous_packet_latitude": 48.1542,
+        "interpolation_gap_s": 85.462,
+        "position_estimation_quality": "good",
+        "thing_id": 678,
+        "frost_historical_location_id": 242883,
+        "frost_location_id": 242892,
+        "avg_speed_kmh_window": 0,
+        "max_speed_kmh_window": 0,
+        "gyro_peak_dps_raw_window": 12.73,
+        "gyro_peak_dps_interpreted_window": 12.73,
+        "vertical_accel_peak_g_bucket_0_older": 0.11,
+        "vertical_accel_peak_g_bucket_1_newer": 0.16,
+        "vibration_hit_rate_pct_bucket_0_older": 0.15,
+        "vibration_hit_rate_pct_bucket_1_newer": 0,
+        "vertical_accel_rms_g_bucket_0_older": 0.01,
+        "vertical_accel_rms_g_bucket_1_newer": 0.01,
+        "roughness_proxy_0_1_bucket_0_older": 0.2116,
+        "roughness_proxy_0_1_bucket_1_newer": 0.2114,
+        "vertical_accel_peak_g_buckets_old_to_new": [
+          0.11,
+          0.16
+        ],
+        "vibration_hit_rate_pct_buckets_old_to_new": [
+          0.15,
+          0
+        ],
+        "vertical_accel_rms_g_buckets_old_to_new": [
+          0.01,
+          0.01
+        ],
+        "roughness_proxy_0_1_buckets_old_to_new": [
+          0.2116,
+          0.2114
+        ],
+        "vertical_accel_peak_g_window_max": 0.16,
+        "vertical_accel_peak_g_window_mean": 0.135,
+        "vibration_hit_rate_pct_window_max": 0.15,
+        "vibration_hit_rate_pct_window_mean": 0.075,
+        "vertical_accel_rms_g_window_rms_combined": 0.01,
+        "vertical_accel_rms_g_window_mean": 0.01,
+        "roughness_proxy_0_1_window_max": 0.2116,
+        "roughness_proxy_0_1_window_mean": 0.2115,
+        "roughness_proxy_note": "packet-level helper fields summarize the two bucket roughness values; use bucket-level GeoJSON if spatial separation is desired",
+        "vertical_accel_rms_mps2_window_rms_combined_unweighted": 0.0981,
+        "vertical_accel_peak_mps2_window_max_unweighted": 1.5691,
+        "humidity_pct_latest_context": null,
+        "humidity_pct_latest_context_time": null,
+        "humidity_pct_latest_context_age_s": null,
+        "temperature_c_latest_context": null,
+        "temperature_c_latest_context_time": null,
+        "temperature_c_latest_context_age_s": null,
+        "roughness_proxy_class_window_max": "low roughness",
+        "suggested_color_hex_window_max": "#2ca25f",
+        "ride_date": "2026-07-02"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.5805,
+          48.1492
+        ]
+      },
+      "properties": {
+        "packet_time": "2026-07-02T15:38:17.365397Z",
+        "feature_type": "raw_packet_window",
+        "measurement_model": "one real packet GPS point with two 12.5s measurement buckets from the previous 25s window",
+        "geometry_note": "Geometry is the real GPS coordinate included in the packet, not an estimated bucket position.",
+        "bucket_count": 2,
+        "bucket_duration_s": 12.5,
+        "window_duration_s": 25.0,
+        "bucket_0_center_offset_s_before_packet": 18.75,
+        "bucket_1_center_offset_s_before_packet": 6.25,
+        "packet_longitude": 11.5805,
+        "packet_latitude": 48.1492,
+        "previous_packet_time": "2026-07-02T15:35:26.363491Z",
+        "previous_packet_longitude": 11.5827,
+        "previous_packet_latitude": 48.1542,
+        "interpolation_gap_s": 171.002,
+        "position_estimation_quality": "weak_heading_may_span_turn",
+        "thing_id": 678,
+        "frost_historical_location_id": 242885,
+        "frost_location_id": 242894,
+        "avg_speed_kmh_window": 12.45,
+        "max_speed_kmh_window": 19.29,
+        "gyro_peak_dps_raw_window": 284.17,
+        "gyro_peak_dps_interpreted_window": 284.17,
+        "vertical_accel_peak_g_bucket_0_older": 7.75,
+        "vertical_accel_peak_g_bucket_1_newer": 2.92,
+        "vibration_hit_rate_pct_bucket_0_older": 54.28,
+        "vibration_hit_rate_pct_bucket_1_newer": 14.82,
+        "vertical_accel_rms_g_bucket_0_older": 0.65,
+        "vertical_accel_rms_g_bucket_1_newer": 0.25,
+        "roughness_proxy_0_1_bucket_0_older": 0.9543,
+        "roughness_proxy_0_1_bucket_1_newer": 0.4998,
+        "vertical_accel_peak_g_buckets_old_to_new": [
+          7.75,
+          2.92
+        ],
+        "vibration_hit_rate_pct_buckets_old_to_new": [
+          54.28,
+          14.82
+        ],
+        "vertical_accel_rms_g_buckets_old_to_new": [
+          0.65,
+          0.25
+        ],
+        "roughness_proxy_0_1_buckets_old_to_new": [
+          0.9543,
+          0.4998
+        ],
+        "vertical_accel_peak_g_window_max": 7.75,
+        "vertical_accel_peak_g_window_mean": 5.335,
+        "vibration_hit_rate_pct_window_max": 54.28,
+        "vibration_hit_rate_pct_window_mean": 34.55,
+        "vertical_accel_rms_g_window_rms_combined": 0.4924,
+        "vertical_accel_rms_g_window_mean": 0.45,
+        "roughness_proxy_0_1_window_max": 0.9543,
+        "roughness_proxy_0_1_window_mean": 0.727,
+        "roughness_proxy_note": "packet-level helper fields summarize the two bucket roughness values; use bucket-level GeoJSON if spatial separation is desired",
+        "vertical_accel_rms_mps2_window_rms_combined_unweighted": 4.8288,
+        "vertical_accel_peak_mps2_window_max_unweighted": 76.0015,
+        "humidity_pct_latest_context": null,
+        "humidity_pct_latest_context_time": null,
+        "humidity_pct_latest_context_age_s": null,
+        "temperature_c_latest_context": null,
+        "temperature_c_latest_context_time": null,
+        "temperature_c_latest_context_age_s": null,
+        "roughness_proxy_class_window_max": "very high roughness",
+        "suggested_color_hex_window_max": "#a50026",
+        "ride_date": "2026-07-02"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.5776,
+          48.1425
+        ]
+      },
+      "properties": {
+        "packet_time": "2026-07-02T15:42:34.042599Z",
+        "feature_type": "raw_packet_window",
+        "measurement_model": "one real packet GPS point with two 12.5s measurement buckets from the previous 25s window",
+        "geometry_note": "Geometry is the real GPS coordinate included in the packet, not an estimated bucket position.",
+        "bucket_count": 2,
+        "bucket_duration_s": 12.5,
+        "window_duration_s": 25.0,
+        "bucket_0_center_offset_s_before_packet": 18.75,
+        "bucket_1_center_offset_s_before_packet": 6.25,
+        "packet_longitude": 11.5776,
+        "packet_latitude": 48.1425,
+        "previous_packet_time": "2026-07-02T15:38:17.365397Z",
+        "previous_packet_longitude": 11.5805,
+        "previous_packet_latitude": 48.1492,
+        "interpolation_gap_s": 256.677,
+        "position_estimation_quality": "poor_heading_from_large_gap",
+        "thing_id": 678,
+        "frost_historical_location_id": 242887,
+        "frost_location_id": 242896,
+        "avg_speed_kmh_window": 4.07,
+        "max_speed_kmh_window": 17.59,
+        "gyro_peak_dps_raw_window": 142.65,
+        "gyro_peak_dps_interpreted_window": 142.65,
+        "vertical_accel_peak_g_bucket_0_older": 0.14,
+        "vertical_accel_peak_g_bucket_1_newer": 1.12,
+        "vibration_hit_rate_pct_bucket_0_older": 0.17,
+        "vibration_hit_rate_pct_bucket_1_newer": 22.31,
+        "vertical_accel_rms_g_bucket_0_older": 0.01,
+        "vertical_accel_rms_g_bucket_1_newer": 0.19,
+        "roughness_proxy_0_1_bucket_0_older": 0.2116,
+        "roughness_proxy_0_1_bucket_1_newer": 0.3354,
+        "vertical_accel_peak_g_buckets_old_to_new": [
+          0.14,
+          1.12
+        ],
+        "vibration_hit_rate_pct_buckets_old_to_new": [
+          0.17,
+          22.31
+        ],
+        "vertical_accel_rms_g_buckets_old_to_new": [
+          0.01,
+          0.19
+        ],
+        "roughness_proxy_0_1_buckets_old_to_new": [
+          0.2116,
+          0.3354
+        ],
+        "vertical_accel_peak_g_window_max": 1.12,
+        "vertical_accel_peak_g_window_mean": 0.63,
+        "vibration_hit_rate_pct_window_max": 22.31,
+        "vibration_hit_rate_pct_window_mean": 11.24,
+        "vertical_accel_rms_g_window_rms_combined": 0.1345,
+        "vertical_accel_rms_g_window_mean": 0.1,
+        "roughness_proxy_0_1_window_max": 0.3354,
+        "roughness_proxy_0_1_window_mean": 0.2735,
+        "roughness_proxy_note": "packet-level helper fields summarize the two bucket roughness values; use bucket-level GeoJSON if spatial separation is desired",
+        "vertical_accel_rms_mps2_window_rms_combined_unweighted": 1.319,
+        "vertical_accel_peak_mps2_window_max_unweighted": 10.9834,
+        "humidity_pct_latest_context": null,
+        "humidity_pct_latest_context_time": null,
+        "humidity_pct_latest_context_age_s": null,
+        "temperature_c_latest_context": null,
+        "temperature_c_latest_context_time": null,
+        "temperature_c_latest_context_age_s": null,
+        "roughness_proxy_class_window_max": "moderate roughness",
+        "suggested_color_hex_window_max": "#fee08b",
+        "ride_date": "2026-07-02"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.5788,
+          48.1451
+        ]
+      },
+      "properties": {
+        "packet_time": "2026-07-02T15:43:59.69975Z",
+        "feature_type": "raw_packet_window",
+        "measurement_model": "one real packet GPS point with two 12.5s measurement buckets from the previous 25s window",
+        "geometry_note": "Geometry is the real GPS coordinate included in the packet, not an estimated bucket position.",
+        "bucket_count": 2,
+        "bucket_duration_s": 12.5,
+        "window_duration_s": 25.0,
+        "bucket_0_center_offset_s_before_packet": 18.75,
+        "bucket_1_center_offset_s_before_packet": 6.25,
+        "packet_longitude": 11.5788,
+        "packet_latitude": 48.1451,
+        "previous_packet_time": "2026-07-02T15:42:34.042599Z",
+        "previous_packet_longitude": 11.5776,
+        "previous_packet_latitude": 48.1425,
+        "interpolation_gap_s": 85.657,
+        "position_estimation_quality": "good",
+        "thing_id": 678,
+        "frost_historical_location_id": 242889,
+        "frost_location_id": 242898,
+        "avg_speed_kmh_window": 5.75,
+        "max_speed_kmh_window": 18.44,
+        "gyro_peak_dps_raw_window": 261.74,
+        "gyro_peak_dps_interpreted_window": 261.74,
+        "vertical_accel_peak_g_bucket_0_older": 3.2,
+        "vertical_accel_peak_g_bucket_1_newer": 0.08,
+        "vibration_hit_rate_pct_bucket_0_older": 26.84,
+        "vibration_hit_rate_pct_bucket_1_newer": 0,
+        "vertical_accel_rms_g_bucket_0_older": 0.37,
+        "vertical_accel_rms_g_bucket_1_newer": 0.01,
+        "roughness_proxy_0_1_bucket_0_older": 0.637,
+        "roughness_proxy_0_1_bucket_1_newer": 0.1781,
+        "vertical_accel_peak_g_buckets_old_to_new": [
+          3.2,
+          0.08
+        ],
+        "vibration_hit_rate_pct_buckets_old_to_new": [
+          26.84,
+          0
+        ],
+        "vertical_accel_rms_g_buckets_old_to_new": [
+          0.37,
+          0.01
+        ],
+        "roughness_proxy_0_1_buckets_old_to_new": [
+          0.637,
+          0.1781
+        ],
+        "vertical_accel_peak_g_window_max": 3.2,
+        "vertical_accel_peak_g_window_mean": 1.64,
+        "vibration_hit_rate_pct_window_max": 26.84,
+        "vibration_hit_rate_pct_window_mean": 13.42,
+        "vertical_accel_rms_g_window_rms_combined": 0.2617,
+        "vertical_accel_rms_g_window_mean": 0.19,
+        "roughness_proxy_0_1_window_max": 0.637,
+        "roughness_proxy_0_1_window_mean": 0.4076,
+        "roughness_proxy_note": "packet-level helper fields summarize the two bucket roughness values; use bucket-level GeoJSON if spatial separation is desired",
+        "vertical_accel_rms_mps2_window_rms_combined_unweighted": 2.5664,
+        "vertical_accel_peak_mps2_window_max_unweighted": 31.3813,
+        "humidity_pct_latest_context": null,
+        "humidity_pct_latest_context_time": null,
+        "humidity_pct_latest_context_age_s": null,
+        "temperature_c_latest_context": null,
+        "temperature_c_latest_context_time": null,
+        "temperature_c_latest_context_age_s": null,
+        "roughness_proxy_class_window_max": "high roughness",
+        "suggested_color_hex_window_max": "#f46d43",
+        "ride_date": "2026-07-02"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.5775,
+          48.1426
+        ]
+      },
+      "properties": {
+        "packet_time": "2026-07-02T15:55:24.477572Z",
+        "feature_type": "raw_packet_window",
+        "measurement_model": "one real packet GPS point with two 12.5s measurement buckets from the previous 25s window",
+        "geometry_note": "Geometry is the real GPS coordinate included in the packet, not an estimated bucket position.",
+        "bucket_count": 2,
+        "bucket_duration_s": 12.5,
+        "window_duration_s": 25.0,
+        "bucket_0_center_offset_s_before_packet": 18.75,
+        "bucket_1_center_offset_s_before_packet": 6.25,
+        "packet_longitude": 11.5775,
+        "packet_latitude": 48.1426,
+        "previous_packet_time": "2026-07-02T15:43:59.69975Z",
+        "previous_packet_longitude": 11.5788,
+        "previous_packet_latitude": 48.1451,
+        "interpolation_gap_s": 684.778,
+        "position_estimation_quality": "poor_heading_from_large_gap",
+        "thing_id": 678,
+        "frost_historical_location_id": 242891,
+        "frost_location_id": 242900,
+        "avg_speed_kmh_window": 3.44,
+        "max_speed_kmh_window": 11.92,
+        "gyro_peak_dps_raw_window": -193.74,
+        "gyro_peak_dps_interpreted_window": 461.62,
+        "vertical_accel_peak_g_bucket_0_older": 0.26,
+        "vertical_accel_peak_g_bucket_1_newer": 2.79,
+        "vibration_hit_rate_pct_bucket_0_older": 0.17,
+        "vibration_hit_rate_pct_bucket_1_newer": 28.19,
+        "vertical_accel_rms_g_bucket_0_older": 0.05,
+        "vertical_accel_rms_g_bucket_1_newer": 0.41,
+        "roughness_proxy_0_1_bucket_0_older": 0.1305,
+        "roughness_proxy_0_1_bucket_1_newer": 0.6224,
+        "vertical_accel_peak_g_buckets_old_to_new": [
+          0.26,
+          2.79
+        ],
+        "vibration_hit_rate_pct_buckets_old_to_new": [
+          0.17,
+          28.19
+        ],
+        "vertical_accel_rms_g_buckets_old_to_new": [
+          0.05,
+          0.41
+        ],
+        "roughness_proxy_0_1_buckets_old_to_new": [
+          0.1305,
+          0.6224
+        ],
+        "vertical_accel_peak_g_window_max": 2.79,
+        "vertical_accel_peak_g_window_mean": 1.525,
+        "vibration_hit_rate_pct_window_max": 28.19,
+        "vibration_hit_rate_pct_window_mean": 14.18,
+        "vertical_accel_rms_g_window_rms_combined": 0.2921,
+        "vertical_accel_rms_g_window_mean": 0.23,
+        "roughness_proxy_0_1_window_max": 0.6224,
+        "roughness_proxy_0_1_window_mean": 0.3764,
+        "roughness_proxy_note": "packet-level helper fields summarize the two bucket roughness values; use bucket-level GeoJSON if spatial separation is desired",
+        "vertical_accel_rms_mps2_window_rms_combined_unweighted": 2.8645,
+        "vertical_accel_peak_mps2_window_max_unweighted": 27.3606,
+        "humidity_pct_latest_context": null,
+        "humidity_pct_latest_context_time": null,
+        "humidity_pct_latest_context_age_s": null,
+        "temperature_c_latest_context": null,
+        "temperature_c_latest_context_time": null,
+        "temperature_c_latest_context_age_s": null,
+        "roughness_proxy_class_window_max": "high roughness",
+        "suggested_color_hex_window_max": "#f46d43",
+        "ride_date": "2026-07-02"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.5775,
+          48.1425
+        ]
+      },
+      "properties": {
+        "packet_time": "2026-07-02T15:56:50.097227Z",
+        "feature_type": "raw_packet_window",
+        "measurement_model": "one real packet GPS point with two 12.5s measurement buckets from the previous 25s window",
+        "geometry_note": "Geometry is the real GPS coordinate included in the packet, not an estimated bucket position.",
+        "bucket_count": 2,
+        "bucket_duration_s": 12.5,
+        "window_duration_s": 25.0,
+        "bucket_0_center_offset_s_before_packet": 18.75,
+        "bucket_1_center_offset_s_before_packet": 6.25,
+        "packet_longitude": 11.5775,
+        "packet_latitude": 48.1425,
+        "previous_packet_time": "2026-07-02T15:55:24.477572Z",
+        "previous_packet_longitude": 11.5775,
+        "previous_packet_latitude": 48.1426,
+        "interpolation_gap_s": 85.62,
+        "position_estimation_quality": "good",
+        "thing_id": 678,
+        "frost_historical_location_id": 242893,
+        "frost_location_id": 242902,
+        "avg_speed_kmh_window": 0.18,
+        "max_speed_kmh_window": 4.5,
+        "gyro_peak_dps_raw_window": 2.08,
+        "gyro_peak_dps_interpreted_window": 2.08,
+        "vertical_accel_peak_g_bucket_0_older": 0.05,
+        "vertical_accel_peak_g_bucket_1_newer": 0.02,
+        "vibration_hit_rate_pct_bucket_0_older": 0.17,
+        "vibration_hit_rate_pct_bucket_1_newer": 0,
+        "vertical_accel_rms_g_bucket_0_older": 0,
+        "vertical_accel_rms_g_bucket_1_newer": 0,
+        "roughness_proxy_0_1_bucket_0_older": 0.0017,
+        "roughness_proxy_0_1_bucket_1_newer": 0.0006,
+        "vertical_accel_peak_g_buckets_old_to_new": [
+          0.05,
+          0.02
+        ],
+        "vibration_hit_rate_pct_buckets_old_to_new": [
+          0.17,
+          0
+        ],
+        "vertical_accel_rms_g_buckets_old_to_new": [
+          0,
+          0
+        ],
+        "roughness_proxy_0_1_buckets_old_to_new": [
+          0.0017,
+          0.0006
+        ],
+        "vertical_accel_peak_g_window_max": 0.05,
+        "vertical_accel_peak_g_window_mean": 0.035,
+        "vibration_hit_rate_pct_window_max": 0.17,
+        "vibration_hit_rate_pct_window_mean": 0.085,
+        "vertical_accel_rms_g_window_rms_combined": 0.0,
+        "vertical_accel_rms_g_window_mean": 0.0,
+        "roughness_proxy_0_1_window_max": 0.0017,
+        "roughness_proxy_0_1_window_mean": 0.0011,
+        "roughness_proxy_note": "packet-level helper fields summarize the two bucket roughness values; use bucket-level GeoJSON if spatial separation is desired",
+        "vertical_accel_rms_mps2_window_rms_combined_unweighted": 0.0,
+        "vertical_accel_peak_mps2_window_max_unweighted": 0.4903,
+        "humidity_pct_latest_context": null,
+        "humidity_pct_latest_context_time": null,
+        "humidity_pct_latest_context_age_s": null,
+        "temperature_c_latest_context": null,
+        "temperature_c_latest_context_time": null,
+        "temperature_c_latest_context_age_s": null,
+        "roughness_proxy_class_window_max": "low roughness",
+        "suggested_color_hex_window_max": "#2ca25f",
+        "ride_date": "2026-07-02"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.5786,
+          48.1446
+        ]
+      },
+      "properties": {
+        "packet_time": "2026-07-02T15:58:15.796322Z",
+        "feature_type": "raw_packet_window",
+        "measurement_model": "one real packet GPS point with two 12.5s measurement buckets from the previous 25s window",
+        "geometry_note": "Geometry is the real GPS coordinate included in the packet, not an estimated bucket position.",
+        "bucket_count": 2,
+        "bucket_duration_s": 12.5,
+        "window_duration_s": 25.0,
+        "bucket_0_center_offset_s_before_packet": 18.75,
+        "bucket_1_center_offset_s_before_packet": 6.25,
+        "packet_longitude": 11.5786,
+        "packet_latitude": 48.1446,
+        "previous_packet_time": "2026-07-02T15:56:50.097227Z",
+        "previous_packet_longitude": 11.5775,
+        "previous_packet_latitude": 48.1425,
+        "interpolation_gap_s": 85.699,
+        "position_estimation_quality": "good",
+        "thing_id": 678,
+        "frost_historical_location_id": 242895,
+        "frost_location_id": 242904,
+        "avg_speed_kmh_window": 15.5,
+        "max_speed_kmh_window": 17.94,
+        "gyro_peak_dps_raw_window": -280.72,
+        "gyro_peak_dps_interpreted_window": 374.64,
+        "vertical_accel_peak_g_bucket_0_older": 7.04,
+        "vertical_accel_peak_g_bucket_1_newer": 3.53,
+        "vibration_hit_rate_pct_bucket_0_older": 45.97,
+        "vibration_hit_rate_pct_bucket_1_newer": 41.89,
+        "vertical_accel_rms_g_bucket_0_older": 0.71,
+        "vertical_accel_rms_g_bucket_1_newer": 0.56,
+        "roughness_proxy_0_1_bucket_0_older": 0.946,
+        "roughness_proxy_0_1_bucket_1_newer": 0.7904,
+        "vertical_accel_peak_g_buckets_old_to_new": [
+          7.04,
+          3.53
+        ],
+        "vibration_hit_rate_pct_buckets_old_to_new": [
+          45.97,
+          41.89
+        ],
+        "vertical_accel_rms_g_buckets_old_to_new": [
+          0.71,
+          0.56
+        ],
+        "roughness_proxy_0_1_buckets_old_to_new": [
+          0.946,
+          0.7904
+        ],
+        "vertical_accel_peak_g_window_max": 7.04,
+        "vertical_accel_peak_g_window_mean": 5.285,
+        "vibration_hit_rate_pct_window_max": 45.97,
+        "vibration_hit_rate_pct_window_mean": 43.93,
+        "vertical_accel_rms_g_window_rms_combined": 0.6394,
+        "vertical_accel_rms_g_window_mean": 0.635,
+        "roughness_proxy_0_1_window_max": 0.946,
+        "roughness_proxy_0_1_window_mean": 0.8682,
+        "roughness_proxy_note": "packet-level helper fields summarize the two bucket roughness values; use bucket-level GeoJSON if spatial separation is desired",
+        "vertical_accel_rms_mps2_window_rms_combined_unweighted": 6.2704,
+        "vertical_accel_peak_mps2_window_max_unweighted": 69.0388,
+        "humidity_pct_latest_context": null,
+        "humidity_pct_latest_context_time": null,
+        "humidity_pct_latest_context_age_s": null,
+        "temperature_c_latest_context": null,
+        "temperature_c_latest_context_time": null,
+        "temperature_c_latest_context_age_s": null,
+        "roughness_proxy_class_window_max": "very high roughness",
+        "suggested_color_hex_window_max": "#a50026",
+        "ride_date": "2026-07-02"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.5827,
+          48.154
+        ]
+      },
+      "properties": {
+        "packet_time": "2026-07-02T16:02:32.845494Z",
+        "feature_type": "raw_packet_window",
+        "measurement_model": "one real packet GPS point with two 12.5s measurement buckets from the previous 25s window",
+        "geometry_note": "Geometry is the real GPS coordinate included in the packet, not an estimated bucket position.",
+        "bucket_count": 2,
+        "bucket_duration_s": 12.5,
+        "window_duration_s": 25.0,
+        "bucket_0_center_offset_s_before_packet": 18.75,
+        "bucket_1_center_offset_s_before_packet": 6.25,
+        "packet_longitude": 11.5827,
+        "packet_latitude": 48.154,
+        "previous_packet_time": "2026-07-02T15:58:15.796322Z",
+        "previous_packet_longitude": 11.5786,
+        "previous_packet_latitude": 48.1446,
+        "interpolation_gap_s": 257.049,
+        "position_estimation_quality": "poor_heading_from_large_gap",
+        "thing_id": 678,
+        "frost_historical_location_id": 242897,
+        "frost_location_id": 242906,
+        "avg_speed_kmh_window": 6.86,
+        "max_speed_kmh_window": 19.16,
+        "gyro_peak_dps_raw_window": 83.99,
+        "gyro_peak_dps_interpreted_window": 83.99,
+        "vertical_accel_peak_g_bucket_0_older": 1.7,
+        "vertical_accel_peak_g_bucket_1_newer": 6.42,
+        "vibration_hit_rate_pct_bucket_0_older": 4.28,
+        "vibration_hit_rate_pct_bucket_1_newer": 13.02,
+        "vertical_accel_rms_g_bucket_0_older": 0.18,
+        "vertical_accel_rms_g_bucket_1_newer": 0.61,
+        "roughness_proxy_0_1_bucket_0_older": 0.4095,
+        "roughness_proxy_0_1_bucket_1_newer": 0.9085,
+        "vertical_accel_peak_g_buckets_old_to_new": [
+          1.7,
+          6.42
+        ],
+        "vibration_hit_rate_pct_buckets_old_to_new": [
+          4.28,
+          13.02
+        ],
+        "vertical_accel_rms_g_buckets_old_to_new": [
+          0.18,
+          0.61
+        ],
+        "roughness_proxy_0_1_buckets_old_to_new": [
+          0.4095,
+          0.9085
+        ],
+        "vertical_accel_peak_g_window_max": 6.42,
+        "vertical_accel_peak_g_window_mean": 4.06,
+        "vibration_hit_rate_pct_window_max": 13.02,
+        "vibration_hit_rate_pct_window_mean": 8.65,
+        "vertical_accel_rms_g_window_rms_combined": 0.4497,
+        "vertical_accel_rms_g_window_mean": 0.395,
+        "roughness_proxy_0_1_window_max": 0.9085,
+        "roughness_proxy_0_1_window_mean": 0.659,
+        "roughness_proxy_note": "packet-level helper fields summarize the two bucket roughness values; use bucket-level GeoJSON if spatial separation is desired",
+        "vertical_accel_rms_mps2_window_rms_combined_unweighted": 4.4101,
+        "vertical_accel_peak_mps2_window_max_unweighted": 62.9587,
+        "humidity_pct_latest_context": null,
+        "humidity_pct_latest_context_time": null,
+        "humidity_pct_latest_context_age_s": null,
+        "temperature_c_latest_context": null,
+        "temperature_c_latest_context_time": null,
+        "temperature_c_latest_context_age_s": null,
+        "roughness_proxy_class_window_max": "very high roughness",
+        "suggested_color_hex_window_max": "#a50026",
+        "ride_date": "2026-07-02"
+      }
+    }
+  ]
+}

@@ -1,0 +1,176 @@
+{
+  "type": "FeatureCollection",
+  "name": "Group 3 real packet GPS points",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.5827,
+          48.1542
+        ]
+      },
+      "properties": {
+        "packet_time": "2026-07-02T15:32:35.351763Z",
+        "feature_type": "real_packet_gps",
+        "avg_speed_kmh_window": 0,
+        "position_note": "This is the real GPS coordinate included in the uplink packet.",
+        "ride_date": "2026-07-02"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.5827,
+          48.1542
+        ]
+      },
+      "properties": {
+        "packet_time": "2026-07-02T15:34:00.901494Z",
+        "feature_type": "real_packet_gps",
+        "avg_speed_kmh_window": 0,
+        "position_note": "This is the real GPS coordinate included in the uplink packet.",
+        "ride_date": "2026-07-02"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.5827,
+          48.1542
+        ]
+      },
+      "properties": {
+        "packet_time": "2026-07-02T15:35:26.363491Z",
+        "feature_type": "real_packet_gps",
+        "avg_speed_kmh_window": 0,
+        "position_note": "This is the real GPS coordinate included in the uplink packet.",
+        "ride_date": "2026-07-02"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.5805,
+          48.1492
+        ]
+      },
+      "properties": {
+        "packet_time": "2026-07-02T15:38:17.365397Z",
+        "feature_type": "real_packet_gps",
+        "avg_speed_kmh_window": 12.45,
+        "position_note": "This is the real GPS coordinate included in the uplink packet.",
+        "ride_date": "2026-07-02"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.5776,
+          48.1425
+        ]
+      },
+      "properties": {
+        "packet_time": "2026-07-02T15:42:34.042599Z",
+        "feature_type": "real_packet_gps",
+        "avg_speed_kmh_window": 4.07,
+        "position_note": "This is the real GPS coordinate included in the uplink packet.",
+        "ride_date": "2026-07-02"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.5788,
+          48.1451
+        ]
+      },
+      "properties": {
+        "packet_time": "2026-07-02T15:43:59.69975Z",
+        "feature_type": "real_packet_gps",
+        "avg_speed_kmh_window": 5.75,
+        "position_note": "This is the real GPS coordinate included in the uplink packet.",
+        "ride_date": "2026-07-02"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.5775,
+          48.1426
+        ]
+      },
+      "properties": {
+        "packet_time": "2026-07-02T15:55:24.477572Z",
+        "feature_type": "real_packet_gps",
+        "avg_speed_kmh_window": 3.44,
+        "position_note": "This is the real GPS coordinate included in the uplink packet.",
+        "ride_date": "2026-07-02"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.5775,
+          48.1425
+        ]
+      },
+      "properties": {
+        "packet_time": "2026-07-02T15:56:50.097227Z",
+        "feature_type": "real_packet_gps",
+        "avg_speed_kmh_window": 0.18,
+        "position_note": "This is the real GPS coordinate included in the uplink packet.",
+        "ride_date": "2026-07-02"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.5786,
+          48.1446
+        ]
+      },
+      "properties": {
+        "packet_time": "2026-07-02T15:58:15.796322Z",
+        "feature_type": "real_packet_gps",
+        "avg_speed_kmh_window": 15.5,
+        "position_note": "This is the real GPS coordinate included in the uplink packet.",
+        "ride_date": "2026-07-02"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.5827,
+          48.154
+        ]
+      },
+      "properties": {
+        "packet_time": "2026-07-02T16:02:32.845494Z",
+        "feature_type": "real_packet_gps",
+        "avg_speed_kmh_window": 6.86,
+        "position_note": "This is the real GPS coordinate included in the uplink packet.",
+        "ride_date": "2026-07-02"
+      }
+    }
+  ]
+}

@@ -33,13 +33,13 @@
     '/data/group3-bike-comfort-ride-2026-07-02-reconstructed-route.geojson',
   ]
   const snapMaxDistanceM = 35
-  const metricColorMax: Record<ScoreMetric, number> = {
+  let metricColorMax: Record<ScoreMetric, number> = {
     roughness: 1,
-    rms: 1.7,
+    rms: 1,
     comfort: 2.5,
-    peak: 23,
-    vibration: 40,
-    speed: 18,
+    peak: 1,
+    vibration: 100,
+    speed: 20,
   }
 
   const dataSources: Record<LayerId, { label: string; files: string[]; help: string }> = {
@@ -129,6 +129,7 @@
     snapEnabled
     reconstructedRoutes
     data
+    metricColorMax
     if (map && !isLoading) {
       currentFeatures = getFilteredFeatures()
       renderMap()
@@ -169,6 +170,7 @@
         })),
       ])
       data = Object.fromEntries(entries) as Record<LayerId, FeatureCollection>
+      metricColorMax = calculateGlobalMetricScales(data.bucket?.features ?? [])
       reconstructedRoutes = reconstructedRouteCollections.flatMap(extractReconstructedRoutes)
     } catch (error) {
       loadError = error instanceof Error ? error.message : String(error)
@@ -430,6 +432,28 @@
     return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2
   }
 
+  function percentile(values: number[], pct: number) {
+    const sorted = values.filter(Number.isFinite).sort((a, b) => a - b)
+    if (!sorted.length) return 1
+    if (sorted.length === 1) return sorted[0]
+    const position = (sorted.length - 1) * pct / 100
+    const low = Math.floor(position)
+    const high = Math.ceil(position)
+    return sorted[low] + (sorted[high] - sorted[low]) * (position - low)
+  }
+
+  function calculateGlobalMetricScales(features: GeoJsonFeature[]): Record<ScoreMetric, number> {
+    const values = (property: string) => features.map((feature) => numeric(feature.properties[property])).filter((value): value is number => value != null)
+    return {
+      roughness: 1,
+      rms: percentile(values('vertical_accel_rms_g'), 90),
+      comfort: 2.5,
+      peak: percentile(values('vertical_accel_peak_g'), 90),
+      vibration: percentile(values('vibration_hit_rate_pct'), 90),
+      speed: percentile(values('avg_speed_kmh_window'), 90),
+    }
+  }
+
   function allRouteDefinitions(): RouteDefinition[] {
     return reconstructedRoutes
   }
@@ -441,16 +465,14 @@
   function getScore(feature: GeoJsonFeature, layerId: LayerId): number | null {
     const p = feature.properties
     if (scoreMetric === 'roughness') {
-      if (layerId === 'packet') return numeric(p.roughness_proxy_0_1_window_max)
-      return numeric(p.roughness_proxy_0_1)
+      return getGlobalRoughnessScore(feature, layerId)
     }
     if (scoreMetric === 'rms') {
       if (layerId === 'packet') return numeric(p.vertical_accel_rms_g_window_rms_combined)
       return numeric(p.vertical_accel_rms_g)
     }
     if (scoreMetric === 'comfort') {
-      if (layerId === 'packet') return numeric(p.vertical_accel_rms_mps2_window_rms_combined_unweighted)
-      return numeric(p.vertical_accel_rms_mps2_unweighted)
+      return getComfortScore(feature, layerId)
     }
     if (scoreMetric === 'peak') {
       if (layerId === 'packet') return numeric(p.vertical_accel_peak_g_window_max)
@@ -463,16 +485,43 @@
     return numeric(p.avg_speed_kmh_window)
   }
 
-  function getRoughnessClass(feature: GeoJsonFeature, layerId: LayerId) {
+  function getComfortScore(feature: GeoJsonFeature, layerId: LayerId): number | null {
     const p = feature.properties
-    const named = layerId === 'packet' ? p.roughness_proxy_class_window_max : p.roughness_proxy_class
-    if (named) return named
-    const score = getScore(feature, layerId)
+    const rawRmsMps2 = layerId === 'packet'
+      ? numeric(p.vertical_accel_rms_mps2_window_rms_combined_unweighted)
+      : numeric(p.vertical_accel_rms_mps2_unweighted)
+    const referenceHighMps2 = metricColorMax.rms * 9.80665
+    return rawRmsMps2 == null ? null : 2.5 * Math.min(rawRmsMps2 / referenceHighMps2, 1)
+  }
+
+  function getGlobalRoughnessScore(feature: GeoJsonFeature, layerId: LayerId): number | null {
+    const p = feature.properties
+    if (layerId === 'packet') {
+      const rmsValues = p.vertical_accel_rms_g_buckets_old_to_new
+      const peakValues = p.vertical_accel_peak_g_buckets_old_to_new
+      const vibrationValues = p.vibration_hit_rate_pct_buckets_old_to_new
+      if (!Array.isArray(rmsValues) || !Array.isArray(peakValues) || !Array.isArray(vibrationValues)) return null
+      const scores = rmsValues.map((rms, index) => calculateGlobalRoughnessScore(rms, peakValues[index], vibrationValues[index]))
+      return scores.length ? Math.max(...scores) : null
+    }
+    if (layerId !== 'bucket') return null
+    return calculateGlobalRoughnessScore(p.vertical_accel_rms_g, p.vertical_accel_peak_g, p.vibration_hit_rate_pct)
+  }
+
+  function calculateGlobalRoughnessScore(rmsValue: any, peakValue: any, vibrationValue: any): number {
+    const rms = numeric(rmsValue) ?? 0
+    const peak = numeric(peakValue) ?? 0
+    const vibration = numeric(vibrationValue) ?? 0
+    const rmsNorm = Math.min(1, rms / metricColorMax.rms)
+    const peakNorm = Math.min(1, peak / metricColorMax.peak)
+    const crestNorm = rms > 0 ? Math.max(0, Math.min(1, (peak / rms - 3) / 6)) : 0
+    return Math.min(1, 0.7 * rmsNorm + 0.2 * Math.max(peakNorm, crestNorm) + 0.1 * Math.min(1, vibration / 100))
+  }
+
+  function getRoughnessClass(feature: GeoJsonFeature, layerId: LayerId) {
+    const score = getGlobalRoughnessScore(feature, layerId)
     if (score == null) return 'low roughness'
-    if (score < 0.25) return 'low roughness'
-    if (score < 0.5) return 'moderate roughness'
-    if (score < 0.75) return 'high roughness'
-    return 'very high roughness'
+    return classForScore(score)
   }
 
   function colorForScore(score: number | null, roughnessClass: string) {
@@ -502,10 +551,11 @@
       ['Layer', dataSources[layerId].label],
       ['Time', getTime(feature)],
       ['Bucket', p.bucket_index != null ? `${p.bucket_index} (${p.bucket_order})` : null],
-      ['Roughness', fmt(layerId === 'packet' ? p.roughness_proxy_0_1_window_max : p.roughness_proxy_0_1)],
+      ['Global roughness', fmt(getGlobalRoughnessScore(feature, layerId))],
       ['Class', getRoughnessClass(feature, layerId)],
       ['RMS g', fmt(layerId === 'packet' ? p.vertical_accel_rms_g_window_rms_combined : p.vertical_accel_rms_g)],
-      ['Comfort proxy m/s²', fmt(layerId === 'packet' ? p.vertical_accel_rms_mps2_window_rms_combined_unweighted : p.vertical_accel_rms_mps2_unweighted)],
+      ['Relative comfort proxy (0–2.5)', fmt(getComfortScore(feature, layerId))],
+      ['Raw unweighted RMS m/s²', fmt(layerId === 'packet' ? p.vertical_accel_rms_mps2_window_rms_combined_unweighted : p.vertical_accel_rms_mps2_unweighted)],
       ['Peak g', fmt(layerId === 'packet' ? p.vertical_accel_peak_g_window_max : p.vertical_accel_peak_g)],
       ['Vibration %', fmt(layerId === 'packet' ? p.vibration_hit_rate_pct_window_mean : p.vibration_hit_rate_pct)],
       ['Avg speed km/h', fmt(p.avg_speed_kmh_window)],
@@ -712,17 +762,17 @@
         <select bind:value={scoreMetric}>
           <option value="roughness">Roughness proxy / compound comfort score</option>
           <option value="rms">Vertical acceleration RMS</option>
-          <option value="comfort">ISO comfort-range proxy (0–2.5 m/s²)</option>
+          <option value="comfort">Relative comfort proxy (0–2.5)</option>
           <option value="peak">Acceleration peak</option>
           <option value="vibration">Vibration hit-rate</option>
           <option value="speed">Average speed</option>
         </select>
         {#if scoreMetric === 'roughness'}
-          <small>Project heuristic (70% RMS, 20% shock, 10% hit-rate), normalized separately within each ride export; it is inspired by <a href="https://www.iso.org/obp/ui/#iso:std:iso:2631:-1:ed-2:v1:en" target="_blank" rel="noreferrer">ISO 2631-1</a> but not standards-compliant.</small>
+          <small>Project heuristic (70% RMS, 20% shock, 10% hit-rate), normalized once across both rides; it is inspired by <a href="https://www.iso.org/obp/ui/#iso:std:iso:2631:-1:ed-2:v1:en" target="_blank" rel="noreferrer">ISO 2631-1</a> but not standards-compliant.</small>
         {:else if scoreMetric === 'rms'}
-          <small>This shows raw unweighted RMS on one global 0–1.7 g color scale, while the compound roughness score is normalized per ride—so their colors are not expected to match.</small>
+          <small>This shows raw unweighted RMS on one global 0–{fmt(metricColorMax.rms)} g p90 color scale calculated across both rides.</small>
         {:else if scoreMetric === 'comfort'}
-          <small><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11134141/" target="_blank" rel="noreferrer">ISO 2631 comfort bands</a> span roughly 0–2.5 m/s², but this proxy uses unweighted vertical RMS and must not be presented as an ISO assessment.</small>
+          <small>This relative index uses 2.5 × min(raw RMS / {fmt(metricColorMax.rms * 9.80665)} m/s², 1), where the reference is the global p90 across both rides. Its bands echo <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11134141/" target="_blank" rel="noreferrer">ISO 2631 comfort ranges</a>, but it is not an ISO assessment.</small>
         {:else if scoreMetric === 'peak'}
           <small><a href="https://www.iso.org/obp/ui/#iso:std:iso:2631:-1:ed-2:v1:en" target="_blank" rel="noreferrer">ISO 2631-1</a> calls for additional evaluation of high-crest-factor vibration; this map’s simple peak is only a shock indicator.</small>
         {:else if scoreMetric === 'vibration'}
@@ -733,7 +783,7 @@
       </label>
       <div class="legend" aria-label="Color legend">
         {#if scoreMetric === 'comfort'}
-          <span class="low">≤0.315</span><span class="moderate">0.315–0.63</span><span class="high">0.63–1.25</span><span class="very-high">≥1.25 m/s²</span>
+          <span class="low">≤0.315</span><span class="moderate">0.315–0.63</span><span class="high">0.63–1.25</span><span class="very-high">≥1.25</span>
         {:else}
           <span class="low">low</span><span class="moderate">moderate</span><span class="high">high</span><span class="very-high">very high</span>
         {/if}

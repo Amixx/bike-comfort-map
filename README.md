@@ -9,8 +9,8 @@ Proposed repo name: `bike-comfort-map`.
 - Estimated bucket-level points from the separately exported June 27 and July 2 rides
 - Raw packet/window points from both rides
 - Optional real packet GPS dots and diagnostic bucket→packet connector lines
-- Roughness, RMS, ISO comfort-range proxy, peak acceleration, vibration, and speed coloring
-- Metric-specific color scales with a constant feature count when the selected color metric changes
+- Roughness, RMS, relative 0–2.5 comfort proxy, peak acceleration, vibration, and speed coloring
+- Metric-specific global color scales calculated across both rides, with a constant feature count when the selected color metric changes
 - Adjustable packet maximum-speed filter (2 km/h by default) to exclude windows whose maximum speed stays below the threshold consistently across layers and print output
 - Toggleable June 27 and July 2 screenshot-route reconstructions with same-ride measurement-colored road segments and an optional full-route color interpolation
 - Optional point snapping to the bundled same-date reconstructed route, using a fixed 35 m safeguard
@@ -66,4 +66,4 @@ Do not make the GitHub Pages app fetch FROST live; it will not work for public u
 
 The compound score weights, SW-420 hit-rate, 2 km/h packet maximum-speed cutoff, packet maximum aggregation, snapping distance, and color thresholds are project heuristics rather than ISO requirements.
 
-The roughness proxy normalizes RMS and peak values separately within each ride export, whereas the RMS view uses one global raw-acceleration scale; this is why the same measurements can appear warmer in roughness mode and greener in RMS mode. Packet roughness consistently uses the maximum of its two buckets.
+The app recalculates the roughness proxy using global RMS and peak p90 values across both bundled rides, so route colors are comparable between dates. The relative comfort proxy uses `2.5 × min(raw unweighted RMS m/s² / global RMS p90, 1)`: p90 robustly limits the influence of extreme measurements without deleting them. It resembles the ISO comfort range but is not a standards-compliant weighted-acceleration measurement. Packet roughness consistently uses the maximum of its two globally normalized buckets.

@@ -34,6 +34,13 @@
     '/data/group3-bike-comfort-ride-2026-07-02-reconstructed-route.geojson',
   ]
   const snapMaxDistanceM = 35
+  const metricColorMax: Record<ScoreMetric, number> = {
+    roughness: 1,
+    rms: 1.7,
+    peak: 23,
+    vibration: 40,
+    speed: 18,
+  }
 
   const dataSources: Record<LayerId, { label: string; files: string[]; help: string }> = {
     bucket: {
@@ -96,8 +103,6 @@
   let visibleLayers = new Set<LayerId>(['bucket'])
   let scoreMetric: ScoreMetric = 'roughness'
   let packetRoughnessMode: PacketRoughnessMode = 'max'
-  let minScore = 0
-  let maxScore = 1
   let hideStationaryPackets = true
   let minRideMaxSpeedKmh = 2
   let showReconstructedRoute = true
@@ -117,8 +122,6 @@
     visibleLayers
     scoreMetric
     packetRoughnessMode
-    minScore
-    maxScore
     hideStationaryPackets
     minRideMaxSpeedKmh
     showReconstructedRoute
@@ -188,8 +191,6 @@
     visibleLayers = new Set(['bucket'])
     scoreMetric = 'roughness'
     packetRoughnessMode = 'max'
-    minScore = 0
-    maxScore = 1
     hideStationaryPackets = true
     minRideMaxSpeedKmh = 2
   }
@@ -203,7 +204,7 @@
     for (const layerId of layerOrder) {
       if (!visibleLayers.has(layerId)) continue
       for (const feature of data[layerId]?.features ?? []) {
-        if (!passesFilters(feature, layerId, movingPacketTimes)) continue
+        if (!passesDataCleaning(feature, movingPacketTimes)) continue
         out.push(prepareFeatureForDisplay(feature, layerId))
       }
     }
@@ -227,13 +228,10 @@
     )
   }
 
-  function passesFilters(feature: GeoJsonFeature, layerId: LayerId, movingPacketTimes: Set<any>) {
+  function passesDataCleaning(feature: GeoJsonFeature, movingPacketTimes: Set<any>) {
     const packetTime = feature.properties.packet_time
     if (packetTime && !movingPacketTimes.has(packetTime)) return false
-    if (layerId === 'connectors' || layerId === 'gps') return true
-
-    const score = getScore(feature, layerId)
-    return score == null || (score >= minScore && score <= maxScore)
+    return true
   }
 
   function prepareFeatureForDisplay(feature: GeoJsonFeature, layerId: LayerId): GeoJsonFeature {
@@ -344,7 +342,7 @@
   function getMeasuredSegmentFeatures(): GeoJsonFeature[] {
     if (!showReconstructedRoute || !showColoredSegments) return []
     const movingPacketTimes = getMovingPacketTimes()
-    const bucketFeatures = (data.bucket?.features ?? []).filter((feature) => passesFilters(feature, 'bucket', movingPacketTimes))
+    const bucketFeatures = (data.bucket?.features ?? []).filter((feature) => passesDataCleaning(feature, movingPacketTimes))
     const segmentFeatures: GeoJsonFeature[] = []
 
     for (const route of reconstructedRoutes) {
@@ -481,7 +479,7 @@
       return '#22c55e'
     }
     if (score == null) return '#64748b'
-    const normalized = Math.max(0, Math.min(1, (score - minScore) / Math.max(0.0001, maxScore - minScore)))
+    const normalized = Math.max(0, Math.min(1, score / metricColorMax[scoreMetric]))
     if (normalized > 0.8) return '#d7191c'
     if (normalized > 0.58) return '#f97316'
     if (normalized > 0.35) return '#facc15'
@@ -771,14 +769,6 @@
           <option value="mean">Window mean</option>
         </select>
         <small>Window max highlights either rough 12.5-second bucket while mean smooths both; this is a project visualization choice, not an ISO rule.</small>
-      </label>
-      <label>
-        Min score
-        <input type="number" step="0.01" bind:value={minScore} />
-      </label>
-      <label>
-        Max score
-        <input type="number" step="0.01" bind:value={maxScore} />
       </label>
       <div class="legend" aria-label="Color legend">
         <span class="low">low</span><span class="moderate">moderate</span><span class="high">high</span><span class="very-high">very high</span>

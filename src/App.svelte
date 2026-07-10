@@ -147,7 +147,7 @@
     }).addTo(map)
     featureLayer.addTo(map)
     routeLayer.addTo(map)
-    window.addEventListener('beforeprint', prepareFullRoutePrint)
+    window.addEventListener('beforeprint', recenterFullRouteForPrint)
     window.addEventListener('afterprint', restoreInteractiveView)
 
     try {
@@ -595,6 +595,14 @@
     map.invalidateSize({ animate: false })
     map.fitBounds(bounds, { animate: false, padding: [24, 24] })
     map.setZoom(map.getZoom() - 0.2, { animate: false })
+    map.panBy([0, 28], { animate: false })
+  }
+
+  function recenterFullRouteForPrint() {
+    if (!map || !reconstructedRoutes.length) return
+    const bounds = L.latLngBounds(reconstructedRoutes.flatMap((route) => route.points))
+    map.invalidateSize({ animate: false, pan: false })
+    map.panTo(bounds.getCenter(), { animate: false })
     map.panBy([0, 28], { animate: false })
   }
 

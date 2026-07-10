@@ -94,6 +94,7 @@
 
   let mapEl: HTMLDivElement
   let map: L.Map
+  let baseTileLayer: L.TileLayer
   let featureLayer = L.layerGroup()
   let routeLayer = L.layerGroup()
   let data: Partial<Record<LayerId, FeatureCollection>> = {}
@@ -139,7 +140,7 @@
   onMount(async () => {
     map = L.map(mapEl, { zoomControl: false, zoomSnap: 0.1 }).setView([48.1482, 11.5655], 14)
     L.control.zoom({ position: 'bottomright' }).addTo(map)
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
+    baseTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
       subdomains: 'abcd',
       maxZoom: 20,
       attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
@@ -607,9 +608,28 @@
     })
   }
 
-  function printFullRouteMap() {
+  function waitForMapTiles(timeoutMs = 2000) {
+    return new Promise<void>((resolve) => {
+      let timeout: number
+      const finish = () => {
+        window.clearTimeout(timeout)
+        baseTileLayer.off('load', finish)
+        resolve()
+      }
+      baseTileLayer.on('load', finish)
+      timeout = window.setTimeout(finish, timeoutMs)
+      requestAnimationFrame(() => {
+        if (!baseTileLayer.isLoading()) finish()
+      })
+    })
+  }
+
+  async function printFullRouteMap() {
+    const tilesReady = waitForMapTiles()
     prepareFullRoutePrint()
-    window.setTimeout(() => window.print(), 250)
+    await tilesReady
+    await new Promise((resolve) => window.setTimeout(resolve, 150))
+    window.print()
   }
 
   function extractRoutes(value: any): [number, number][][] {

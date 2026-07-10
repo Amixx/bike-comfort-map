@@ -137,7 +137,7 @@
   }
 
   onMount(async () => {
-    map = L.map(mapEl, { zoomControl: false }).setView([48.1482, 11.5655], 14)
+    map = L.map(mapEl, { zoomControl: false, zoomSnap: 0.1 }).setView([48.1482, 11.5655], 14)
     L.control.zoom({ position: 'bottomright' }).addTo(map)
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
       subdomains: 'abcd',
@@ -592,7 +592,7 @@
     if (!viewBeforePrint) viewBeforePrint = { center: map.getCenter(), zoom: map.getZoom() }
     const bounds = L.latLngBounds(reconstructedRoutes.flatMap((route) => route.points))
     map.invalidateSize({ animate: false })
-    map.fitBounds(bounds, { animate: false, padding: [48, 48] })
+    map.fitBounds(bounds, { animate: false, padding: [12, 12] })
   }
 
   function restoreInteractiveView() {

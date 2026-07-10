@@ -259,18 +259,14 @@ input[type='number'] {
   font-weight: 760;
 }
 
-.exports button {
-  flex: 1 1 45%;
-}
-
-.exports .primary-export {
-  flex-basis: 100%;
+.print-actions button {
+  width: 100%;
   border-color: #0f766e;
   color: #f7f4e8;
   background: #0f766e;
 }
 
-.exports .primary-export:hover:not(:disabled) {
+.print-actions button:hover:not(:disabled) {
   color: var(--ink);
 }
 
@@ -377,7 +373,32 @@ input[type='number'] {
   }
 }
 
+@page {
+  size: landscape;
+  margin: 0;
+}
+
 @media print {
+  html,
+  body,
+  #app,
+  .app-shell,
+  .map-stage,
+  .map {
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
+
+  body {
+    background: #fff;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
   .panel,
   .map-toolbar,
   .leaflet-control-container {
@@ -388,7 +409,8 @@ input[type='number'] {
     display: block;
   }
 
-  .map {
-    height: 100vh;
+  .map-stage {
+    position: fixed;
+    inset: 0;
   }
 }

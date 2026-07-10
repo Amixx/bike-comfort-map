@@ -114,6 +114,7 @@
   let snappedPointCount = 0
   let totalPointCount = 0
   let hasFitted = false
+  let viewBeforePrint: { center: L.LatLng; zoom: number } | null = null
 
   $: stats = buildStats(currentFeatures)
   $: routeLineCount = reconstructedRoutes.filter((route) => route.points.length > 1).length
@@ -146,6 +147,8 @@
     }).addTo(map)
     featureLayer.addTo(map)
     routeLayer.addTo(map)
+    window.addEventListener('beforeprint', prepareFullRoutePrint)
+    window.addEventListener('afterprint', restoreInteractiveView)
 
     try {
       const [entries, reconstructedRouteCollections] = await Promise.all([
@@ -526,78 +529,27 @@
     }
   }
 
-  function downloadFilteredGeoJson() {
-    const collection: FeatureCollection = { type: 'FeatureCollection', features: currentFeatures }
-    downloadBlob(JSON.stringify(collection, null, 2), 'group3-bike-comfort-filtered.geojson', 'application/geo+json')
+  function prepareFullRoutePrint() {
+    if (!map || !reconstructedRoutes.length) return
+    if (!viewBeforePrint) viewBeforePrint = { center: map.getCenter(), zoom: map.getZoom() }
+    const bounds = L.latLngBounds(reconstructedRoutes.flatMap((route) => route.points))
+    map.invalidateSize({ animate: false })
+    map.fitBounds(bounds, { animate: false, padding: [48, 48] })
   }
 
-  function downloadVisibleGeoJson() {
-    const routeFeatures: GeoJsonFeature[] = allRouteDefinitions()
-      .filter((route) => route.points.length > 1 && (route.source !== 'reconstructed' || showReconstructedRoute))
-      .map((route) => ({
-        type: 'Feature',
-        geometry: { type: 'LineString', coordinates: route.points.map(([lat, lng]) => [lng, lat]) },
-        properties: {
-          feature_kind: 'visible_route',
-          route_source: route.source,
-          ride_date: route.rideDate ?? null,
-          label: route.label,
-          approximate: route.source === 'reconstructed',
-        },
-      }))
-    const collection: FeatureCollection = {
-      type: 'FeatureCollection',
-      properties: {
-        exported_at: new Date().toISOString(),
-        export_scope: 'visible filtered map data',
-        score_metric: scoreMetric,
-        low_speed_filter_enabled: hideStationaryPackets,
-        minimum_packet_max_speed_kmh: hideStationaryPackets ? minRideMaxSpeedKmh : null,
-        point_snapping_enabled: snapEnabled,
-        colored_segments_enabled: showColoredSegments && showReconstructedRoute,
-        route_color_gaps_filled: fillRouteColorGaps && showColoredSegments && showReconstructedRoute,
-        warning: 'Reconstructed routes, snapped positions, and colored segments are approximate refinements; original coordinates remain in snap_original_* properties when snapping is enabled.',
-      },
-      features: [...routeFeatures, ...getMeasuredSegmentFeatures(), ...currentFeatures],
-    }
-    downloadBlob(JSON.stringify(collection, null, 2), 'group3-bike-comfort-visible-map.geojson', 'application/geo+json')
+  function restoreInteractiveView() {
+    if (!viewBeforePrint) return
+    const view = viewBeforePrint
+    viewBeforePrint = null
+    requestAnimationFrame(() => {
+      map.invalidateSize({ animate: false })
+      map.setView(view.center, view.zoom, { animate: false })
+    })
   }
 
-  function downloadFilteredCsv() {
-    const rows = currentFeatures
-      .filter((feature) => feature.geometry.type === 'Point')
-      .map((feature) => {
-        const [lng, lat] = feature.geometry.coordinates as [number, number]
-        const layerId = feature.properties.app_layer as LayerId
-        return {
-          layer: layerId,
-          time: getTime(feature),
-          longitude: lng,
-          latitude: lat,
-          score: getScore(feature, layerId),
-          roughness_class: getRoughnessClass(feature, layerId),
-          position_quality: feature.properties.position_estimation_quality ?? '',
-          vertical_accel_rms_g: layerId === 'packet' ? feature.properties.vertical_accel_rms_g_window_rms_combined : feature.properties.vertical_accel_rms_g,
-          vertical_accel_peak_g: layerId === 'packet' ? feature.properties.vertical_accel_peak_g_window_max : feature.properties.vertical_accel_peak_g,
-          vibration_hit_rate_pct: layerId === 'packet' ? feature.properties.vibration_hit_rate_pct_window_mean : feature.properties.vibration_hit_rate_pct,
-          avg_speed_kmh_window: feature.properties.avg_speed_kmh_window,
-          max_speed_kmh_window: feature.properties.max_speed_kmh_window,
-          snap_distance_m: feature.properties.snap_distance_m ?? '',
-        }
-      })
-    const headers = Object.keys(rows[0] ?? { layer: '', time: '', longitude: '', latitude: '' })
-    const csv = [headers.join(','), ...rows.map((row) => headers.map((header) => csvCell((row as any)[header])).join(','))].join('\n')
-    downloadBlob(csv, 'group3-bike-comfort-filtered.csv', 'text/csv')
-  }
-
-  function downloadBlob(body: string, name: string, type: string) {
-    const blob = new Blob([body], { type })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = name
-    a.click()
-    URL.revokeObjectURL(url)
+  function printFullRouteMap() {
+    prepareFullRoutePrint()
+    window.setTimeout(() => window.print(), 250)
   }
 
   function extractRoutes(value: any): [number, number][][] {
@@ -696,11 +648,6 @@
     return value.replace(/[&<>'"]/g, (char) => ({ '&': '&#38;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[char]!)
   }
 
-  function csvCell(value: any) {
-    if (value == null) return ''
-    const s = String(value)
-    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
-  }
 </script>
 
 <svelte:head>
@@ -813,11 +760,8 @@
           <span>{className.replace(' roughness', '')}: {stats.classes[className] ?? 0}</span>
         {/each}
       </div>
-      <div class="button-row exports">
-        <button class="primary-export" type="button" onclick={downloadVisibleGeoJson} disabled={!currentFeatures.length && !routeLineCount}>Export visible map GeoJSON</button>
-        <button type="button" onclick={downloadFilteredGeoJson} disabled={!currentFeatures.length}>Download filtered GeoJSON</button>
-        <button type="button" onclick={downloadFilteredCsv} disabled={!currentFeatures.length}>Download CSV</button>
-        <button type="button" onclick={() => window.print()}>Print / save map</button>
+      <div class="button-row print-actions">
+        <button type="button" onclick={printFullRouteMap} disabled={!routeLineCount}>Print / save full map</button>
       </div>
     </section>
   </aside>

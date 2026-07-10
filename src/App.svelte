@@ -594,8 +594,8 @@
     const bounds = L.latLngBounds(reconstructedRoutes.flatMap((route) => route.points))
     map.invalidateSize({ animate: false })
     map.fitBounds(bounds, { animate: false, padding: [24, 24] })
-    map.setZoom(map.getZoom() - 0.2, { animate: false })
-    map.panBy([0, 28], { animate: false })
+    map.setZoom(map.getZoom() - 0.3, { animate: false })
+    map.panBy([0, 40], { animate: false })
   }
 
   function recenterFullRouteForPrint() {
@@ -605,7 +605,7 @@
     map.panTo(bounds.getCenter(), { animate: false })
     const a4LandscapeWidthPx = 297 / 25.4 * 96
     const horizontalCropPx = Math.max(0, (map.getSize().x - a4LandscapeWidthPx) / 2)
-    map.panBy([horizontalCropPx, 28], { animate: false })
+    map.panBy([horizontalCropPx, 40], { animate: false })
   }
 
   function restoreInteractiveView() {

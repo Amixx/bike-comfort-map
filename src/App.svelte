@@ -20,8 +20,7 @@
   }
 
   type LayerId = 'bucket' | 'packet' | 'gps' | 'connectors'
-  type ScoreMetric = 'roughness' | 'rms' | 'peak' | 'vibration' | 'speed'
-  type PacketRoughnessMode = 'max' | 'mean'
+  type ScoreMetric = 'roughness' | 'rms' | 'comfort' | 'peak' | 'vibration' | 'speed'
   type RouteDefinition = {
     points: [number, number][]
     rideDate?: string
@@ -37,6 +36,7 @@
   const metricColorMax: Record<ScoreMetric, number> = {
     roughness: 1,
     rms: 1.7,
+    comfort: 2.5,
     peak: 23,
     vibration: 40,
     speed: 18,
@@ -102,7 +102,6 @@
 
   let visibleLayers = new Set<LayerId>(['bucket'])
   let scoreMetric: ScoreMetric = 'roughness'
-  let packetRoughnessMode: PacketRoughnessMode = 'max'
   let hideStationaryPackets = true
   let minRideMaxSpeedKmh = 2
   let showReconstructedRoute = true
@@ -122,7 +121,6 @@
   $: {
     visibleLayers
     scoreMetric
-    packetRoughnessMode
     hideStationaryPackets
     minRideMaxSpeedKmh
     showReconstructedRoute
@@ -193,7 +191,6 @@
   function resetFilters() {
     visibleLayers = new Set(['bucket'])
     scoreMetric = 'roughness'
-    packetRoughnessMode = 'max'
     hideStationaryPackets = true
     minRideMaxSpeedKmh = 2
   }
@@ -444,12 +441,16 @@
   function getScore(feature: GeoJsonFeature, layerId: LayerId): number | null {
     const p = feature.properties
     if (scoreMetric === 'roughness') {
-      if (layerId === 'packet') return numeric(packetRoughnessMode === 'max' ? p.roughness_proxy_0_1_window_max : p.roughness_proxy_0_1_window_mean)
+      if (layerId === 'packet') return numeric(p.roughness_proxy_0_1_window_max)
       return numeric(p.roughness_proxy_0_1)
     }
     if (scoreMetric === 'rms') {
       if (layerId === 'packet') return numeric(p.vertical_accel_rms_g_window_rms_combined)
       return numeric(p.vertical_accel_rms_g)
+    }
+    if (scoreMetric === 'comfort') {
+      if (layerId === 'packet') return numeric(p.vertical_accel_rms_mps2_window_rms_combined_unweighted)
+      return numeric(p.vertical_accel_rms_mps2_unweighted)
     }
     if (scoreMetric === 'peak') {
       if (layerId === 'packet') return numeric(p.vertical_accel_peak_g_window_max)
@@ -482,6 +483,12 @@
       return '#22c55e'
     }
     if (score == null) return '#64748b'
+    if (scoreMetric === 'comfort') {
+      if (score > 1.25) return '#d7191c'
+      if (score > 0.63) return '#f97316'
+      if (score > 0.315) return '#facc15'
+      return '#22c55e'
+    }
     const normalized = Math.max(0, Math.min(1, score / metricColorMax[scoreMetric]))
     if (normalized > 0.8) return '#d7191c'
     if (normalized > 0.58) return '#f97316'
@@ -498,6 +505,7 @@
       ['Roughness', fmt(layerId === 'packet' ? p.roughness_proxy_0_1_window_max : p.roughness_proxy_0_1)],
       ['Class', getRoughnessClass(feature, layerId)],
       ['RMS g', fmt(layerId === 'packet' ? p.vertical_accel_rms_g_window_rms_combined : p.vertical_accel_rms_g)],
+      ['Comfort proxy m/s²', fmt(layerId === 'packet' ? p.vertical_accel_rms_mps2_window_rms_combined_unweighted : p.vertical_accel_rms_mps2_unweighted)],
       ['Peak g', fmt(layerId === 'packet' ? p.vertical_accel_peak_g_window_max : p.vertical_accel_peak_g)],
       ['Vibration %', fmt(layerId === 'packet' ? p.vibration_hit_rate_pct_window_mean : p.vibration_hit_rate_pct)],
       ['Avg speed km/h', fmt(p.avg_speed_kmh_window)],
@@ -704,14 +712,17 @@
         <select bind:value={scoreMetric}>
           <option value="roughness">Roughness proxy / compound comfort score</option>
           <option value="rms">Vertical acceleration RMS</option>
+          <option value="comfort">ISO comfort-range proxy (0–2.5 m/s²)</option>
           <option value="peak">Acceleration peak</option>
           <option value="vibration">Vibration hit-rate</option>
           <option value="speed">Average speed</option>
         </select>
         {#if scoreMetric === 'roughness'}
-          <small>Project heuristic (70% RMS, 20% shock, 10% hit-rate), inspired by <a href="https://www.iso.org/obp/ui/#iso:std:iso:2631:-1:ed-2:v1:en" target="_blank" rel="noreferrer">ISO 2631-1</a> but not standards-compliant.</small>
+          <small>Project heuristic (70% RMS, 20% shock, 10% hit-rate), normalized separately within each ride export; it is inspired by <a href="https://www.iso.org/obp/ui/#iso:std:iso:2631:-1:ed-2:v1:en" target="_blank" rel="noreferrer">ISO 2631-1</a> but not standards-compliant.</small>
         {:else if scoreMetric === 'rms'}
-          <small><a href="https://www.iso.org/obp/ui/#iso:std:iso:2631:-1:ed-2:v1:en" target="_blank" rel="noreferrer">ISO 2631-1</a> uses frequency-weighted RMS; this map shows unweighted vertical RMS, so it is a relative proxy only.</small>
+          <small>This shows raw unweighted RMS on one global 0–1.7 g color scale, while the compound roughness score is normalized per ride—so their colors are not expected to match.</small>
+        {:else if scoreMetric === 'comfort'}
+          <small><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11134141/" target="_blank" rel="noreferrer">ISO 2631 comfort bands</a> span roughly 0–2.5 m/s², but this proxy uses unweighted vertical RMS and must not be presented as an ISO assessment.</small>
         {:else if scoreMetric === 'peak'}
           <small><a href="https://www.iso.org/obp/ui/#iso:std:iso:2631:-1:ed-2:v1:en" target="_blank" rel="noreferrer">ISO 2631-1</a> calls for additional evaluation of high-crest-factor vibration; this map’s simple peak is only a shock indicator.</small>
         {:else if scoreMetric === 'vibration'}
@@ -720,16 +731,12 @@
           <small>Speed is context rather than an ISO comfort measure, but <a href="https://doi.org/10.3390/s24227210" target="_blank" rel="noreferrer">cycling roughness research</a> identifies it as a key influence on measured vibration.</small>
         {/if}
       </label>
-      <label>
-        Packet roughness
-        <select bind:value={packetRoughnessMode} disabled={scoreMetric !== 'roughness'}>
-          <option value="max">Window max</option>
-          <option value="mean">Window mean</option>
-        </select>
-        <small>Window max highlights either rough 12.5-second bucket while mean smooths both; this is a project visualization choice, not an ISO rule.</small>
-      </label>
       <div class="legend" aria-label="Color legend">
-        <span class="low">low</span><span class="moderate">moderate</span><span class="high">high</span><span class="very-high">very high</span>
+        {#if scoreMetric === 'comfort'}
+          <span class="low">≤0.315</span><span class="moderate">0.315–0.63</span><span class="high">0.63–1.25</span><span class="very-high">≥1.25 m/s²</span>
+        {:else}
+          <span class="low">low</span><span class="moderate">moderate</span><span class="high">high</span><span class="very-high">very high</span>
+        {/if}
       </div>
     </section>
 

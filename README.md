@@ -9,7 +9,7 @@ Proposed repo name: `bike-comfort-map`.
 - Estimated bucket-level points from the separately exported June 27 and July 2 rides
 - Raw packet/window points from both rides
 - Optional real packet GPS dots and diagnostic bucket→packet connector lines
-- Roughness, RMS, peak acceleration, vibration, and speed coloring
+- Roughness, RMS, ISO comfort-range proxy, peak acceleration, vibration, and speed coloring
 - Metric-specific color scales with a constant feature count when the selected color metric changes
 - Adjustable packet maximum-speed filter (2 km/h by default) to exclude windows whose maximum speed stays below the threshold consistently across layers and print output
 - Toggleable June 27 and July 2 screenshot-route reconstructions with same-ride measurement-colored road segments and an optional full-route color interpolation
@@ -64,4 +64,6 @@ Do not make the GitHub Pages app fetch FROST live; it will not work for public u
 - Ahmed et al. (2024), [*Evaluating Bicycle Path Roughness: A Comparative Study Using Smartphone and Smart Bicycle Light Sensors*](https://doi.org/10.3390/s24227210), highlights speed and sensor setup as important influences on measured bicycle-path roughness.
 - Gao et al. (2025), [*Network-Wide GIS Mapping of Cycling Vibration Comfort: From Methodology to Real-World Implementation*](https://pmc.ncbi.nlm.nih.gov/articles/PMC12526540/), demonstrates mapping acceleration-derived comfort levels onto road segments.
 
-The compound score weights, SW-420 hit-rate, 2 km/h packet maximum-speed cutoff, packet max/mean choice, snapping distance, and color thresholds are project heuristics rather than ISO requirements.
+The compound score weights, SW-420 hit-rate, 2 km/h packet maximum-speed cutoff, packet maximum aggregation, snapping distance, and color thresholds are project heuristics rather than ISO requirements.
+
+The roughness proxy normalizes RMS and peak values separately within each ride export, whereas the RMS view uses one global raw-acceleration scale; this is why the same measurements can appear warmer in roughness mode and greener in RMS mode. Packet roughness consistently uses the maximum of its two buckets.

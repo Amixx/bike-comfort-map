@@ -54,6 +54,7 @@ Do not make the GitHub Pages app fetch FROST live; it will not work for public u
 - Packet-window points use real GPS only and keep both bucket values in properties.
 - Different rides should be handled as separate route segments; the app does not assume cross-ride continuity.
 - The roughness proxy is relative and ISO-2631-inspired, not ISO-compliant.
+- The June 27 reconstruction removes a short northwest-corner routing backtrack so the two road sides meet at the intended corner.
 
 ## Method references
 

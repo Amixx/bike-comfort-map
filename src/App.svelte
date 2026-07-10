@@ -612,12 +612,23 @@
   function extractReconstructedRoutes(collection: FeatureCollection): RouteDefinition[] {
     return collection.features.flatMap((feature, featureIndex) => {
       const properties = { ...collection.properties, ...feature.properties }
-      return extractRoutes(feature.geometry).map((points, routeIndex) => ({
-        points,
-        rideDate: properties.ride_date,
-        label: properties.label ?? `Reconstructed route ${featureIndex + 1}.${routeIndex + 1}`,
-        source: 'reconstructed' as const,
-      }))
+      return extractRoutes(feature.geometry).map((rawPoints, routeIndex) => {
+        let points = rawPoints
+        if (properties.ride_date === '2026-06-27') {
+          const cornerMatches = points
+            .map(([lat, lng], index) => lat === 48.155748 && lng === 11.573279 ? index : -1)
+            .filter((index) => index >= 0)
+          if (cornerMatches.length === 2) {
+            points = [...points.slice(0, cornerMatches[0] + 1), ...points.slice(cornerMatches[1] + 1)]
+          }
+        }
+        return {
+          points,
+          rideDate: properties.ride_date,
+          label: properties.label ?? `Reconstructed route ${featureIndex + 1}.${routeIndex + 1}`,
+          source: 'reconstructed' as const,
+        }
+      })
     })
   }
 

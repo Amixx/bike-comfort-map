@@ -32,7 +32,7 @@
     '/data/group3-bike-comfort-ride-2026-06-27-reconstructed-route.geojson',
     '/data/group3-bike-comfort-ride-2026-07-02-reconstructed-route.geojson',
   ]
-  const snapMaxDistanceM = 35
+  const snapMaxDistanceM = 50
   let metricColorMax: Record<ScoreMetric, number> = {
     roughness: 1,
     rms: 1,

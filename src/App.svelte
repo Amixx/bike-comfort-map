@@ -594,7 +594,7 @@
     map.invalidateSize({ animate: false })
     map.fitBounds(bounds, { animate: false, padding: [24, 24] })
     map.setZoom(map.getZoom() - 0.2, { animate: false })
-    map.panBy([0, 16], { animate: false })
+    map.panBy([0, 28], { animate: false })
   }
 
   function restoreInteractiveView() {

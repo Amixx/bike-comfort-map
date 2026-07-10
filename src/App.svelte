@@ -755,7 +755,7 @@
       </label>
     </section>
 
-    <section class="card controls two-col">
+    <section class="card controls">
       <h2>Color and score</h2>
       <label>
         Score metric

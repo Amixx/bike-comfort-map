@@ -147,6 +147,7 @@
     }).addTo(map)
     featureLayer.addTo(map)
     routeLayer.addTo(map)
+    window.addEventListener('beforeprint', prepareFullRoutePrint)
     window.addEventListener('afterprint', restoreInteractiveView)
 
     try {

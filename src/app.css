@@ -378,6 +378,39 @@ input[type='number'] {
   margin: 0;
 }
 
+html.preparing-print,
+html.preparing-print body,
+html.preparing-print #app,
+html.preparing-print .app-shell,
+html.preparing-print .map-stage,
+html.preparing-print .map {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+html.preparing-print body {
+  background: #fff;
+}
+
+html.preparing-print .panel,
+html.preparing-print .map-toolbar,
+html.preparing-print .leaflet-control-container {
+  display: none !important;
+}
+
+html.preparing-print .app-shell {
+  display: block;
+}
+
+html.preparing-print .map-stage {
+  position: fixed;
+  inset: 0;
+}
+
 @media print {
   html,
   body,

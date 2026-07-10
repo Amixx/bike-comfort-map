@@ -147,7 +147,6 @@
     }).addTo(map)
     featureLayer.addTo(map)
     routeLayer.addTo(map)
-    window.addEventListener('beforeprint', prepareFullRoutePrint)
     window.addEventListener('afterprint', restoreInteractiveView)
 
     try {
@@ -599,6 +598,7 @@
   }
 
   function restoreInteractiveView() {
+    document.documentElement.classList.remove('preparing-print')
     if (!viewBeforePrint) return
     const view = viewBeforePrint
     viewBeforePrint = null
@@ -625,6 +625,8 @@
   }
 
   async function printFullRouteMap() {
+    document.documentElement.classList.add('preparing-print')
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
     const tilesReady = waitForMapTiles()
     prepareFullRoutePrint()
     await tilesReady

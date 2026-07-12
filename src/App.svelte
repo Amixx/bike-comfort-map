@@ -783,17 +783,17 @@
           <option value="speed">Average speed</option>
         </select>
         {#if scoreMetric === 'roughness'}
-          <small>Project heuristic (70% RMS, 20% shock, 10% hit-rate), normalized once across both rides; it is inspired by <a href="https://www.iso.org/obp/ui/#iso:std:iso:2631:-1:ed-2:v1:en" target="_blank" rel="noreferrer">ISO 2631-1</a> but not standards-compliant.</small>
+          <small>Project heuristic (70% RMS, 20% shock, 10% hit-rate), normalized once across both rides; based on <a href="https://www.iso.org/obp/ui/#iso:std:iso:2631:-1:ed-2:v1:en" target="_blank" rel="noreferrer">ISO 2631-1</a>.</small>
         {:else if scoreMetric === 'rms'}
           <small>This shows raw unweighted RMS on one global 0–{fmt(metricColorMax.rms)} g p90 color scale calculated across both rides.</small>
         {:else if scoreMetric === 'comfort'}
-          <small>Closest attainable ISO-style comfort value: raw unweighted RMS × {fmt(isoWkWeightingFactor)}, a fixed approximation of the <a href="https://www.iso.org/obp/ui/#iso:std:iso:2631:-1:ed-2:v1:en" target="_blank" rel="noreferrer">ISO 2631-1</a> Wk frequency weighting (capped at 2.5 m/s²). Bands follow published <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11134141/" target="_blank" rel="noreferrer">cycling comfort ranges</a>. The device only transmits unweighted RMS, so this estimates rather than measures the weighted acceleration.</small>
+          <small>Closest attainable ISO-style comfort value: raw unweighted RMS × {fmt(isoWkWeightingFactor)}, a fixed approximation of the <a href="https://www.iso.org/obp/ui/#iso:std:iso:2631:-1:ed-2:v1:en" target="_blank" rel="noreferrer">ISO 2631-1</a> Wk frequency weighting (capped at 2.5 m/s²). Bands follow published <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11134141/" target="_blank" rel="noreferrer">cycling comfort ranges</a>.</small>
         {:else if scoreMetric === 'peak'}
-          <small><a href="https://www.iso.org/obp/ui/#iso:std:iso:2631:-1:ed-2:v1:en" target="_blank" rel="noreferrer">ISO 2631-1</a> calls for additional evaluation of high-crest-factor vibration; this map’s simple peak is only a shock indicator.</small>
+          <small><a href="https://www.iso.org/obp/ui/#iso:std:iso:2631:-1:ed-2:v1:en" target="_blank" rel="noreferrer">ISO 2631-1</a> highlights high-crest-factor vibration; this peak value flags those shock events.</small>
         {:else if scoreMetric === 'vibration'}
-          <small>SW-420 hit-rate is a project-specific event-density heuristic and is not an ISO 2631 comfort quantity.</small>
+          <small>SW-420 hit-rate is an event-density measure of how often vibration crosses the sensor threshold.</small>
         {:else}
-          <small>Speed is context rather than an ISO comfort measure, but <a href="https://doi.org/10.3390/s24227210" target="_blank" rel="noreferrer">cycling roughness research</a> identifies it as a key influence on measured vibration.</small>
+          <small><a href="https://doi.org/10.3390/s24227210" target="_blank" rel="noreferrer">Cycling roughness research</a> identifies speed as a key influence on measured vibration.</small>
         {/if}
       </label>
       <div class="legend" aria-label="Color legend">

@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bike path type tracer</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; font-family: -apple-system, Segoe UI, Roboto, sans-serif; }
+  #app { display: flex; height: 100%; }
+  #sidebar { width: 340px; flex: 0 0 340px; height: 100%; overflow-y: auto; background: #f7f7f4; border-right: 1px solid #ddd; padding: 14px; }
+  #map { flex: 1; height: 100%; }
+  h1 { font-size: 16px; margin: 0 0 8px; }
+  .hint { font-size: 12px; color: #555; line-height: 1.45; margin: 0 0 12px; }
+  .hint kbd { background: #fff; border: 1px solid #ccc; border-radius: 4px; padding: 0 4px; font-size: 11px; }
+  .types { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+  .type-btn { display: flex; align-items: center; gap: 8px; padding: 8px; border: 2px solid transparent; border-radius: 8px; background: #fff; cursor: pointer; text-align: left; font-size: 12px; line-height: 1.25; }
+  .type-btn.active { border-color: #111; background: #fffbe8; }
+  .type-btn .num { font-weight: 700; color: #888; width: 12px; }
+  .swatch { width: 22px; height: 10px; border-radius: 6px; flex: 0 0 22px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.15); }
+  .toggles { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; font-size: 13px; }
+  .actions { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  button.op { padding: 7px 10px; border: 1px solid #bbb; border-radius: 7px; background: #fff; cursor: pointer; font-size: 12px; }
+  button.op:hover { background: #eee; }
+  button.primary { background: #111; color: #fff; border-color: #111; }
+  .seg-list { display: flex; flex-direction: column; gap: 4px; margin: 6px 0 12px; }
+  .seg { display: flex; align-items: center; gap: 7px; font-size: 12px; padding: 4px 6px; border-radius: 6px; background: #fff; }
+  .seg .dot { width: 12px; height: 12px; border-radius: 50%; flex: 0 0 12px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.2); }
+  .seg .len { color: #666; margin-left: auto; font-variant-numeric: tabular-nums; }
+  .seg .del { cursor: pointer; color: #b00; font-weight: 700; padding: 0 4px; }
+  .summary { font-size: 12px; }
+  .summary .row { display: flex; align-items: center; gap: 7px; padding: 2px 0; }
+  .summary .row .len { margin-left: auto; font-variant-numeric: tabular-nums; }
+  #status { font-size: 12px; color: #333; background: #fff; border: 1px solid #ddd; border-radius: 7px; padding: 7px; margin-bottom: 12px; }
+  .file-row { font-size: 12px; margin-top: 6px; }
+  h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: #888; margin: 14px 0 6px; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="sidebar">
+    <h1>Bike path type tracer</h1>
+    <p class="hint">
+      Pick a type, then <b>click</b> along the route to draw a line. <b>Double-click</b> or
+      <kbd>Enter</kbd> finishes it. <kbd>Backspace</kbd> undoes a point, <kbd>Esc</kbd> cancels.
+      Keys <kbd>1</kbd>–<kbd>5</kbd> switch type. Export when done.
+    </p>
+    <div class="types" id="types"></div>
+
+    <div class="toggles">
+      <label><input type="checkbox" id="snap" checked /> Snap to ridden route (≤20 m)</label>
+      <label><input type="checkbox" id="showref" checked /> Show ridden route (gray)</label>
+    </div>
+
+    <div class="actions">
+      <button class="op primary" id="finish">Finish segment</button>
+      <button class="op" id="undo">Undo point</button>
+      <button class="op" id="cancel">Cancel line</button>
+    </div>
+
+    <div id="status">Ready.</div>
+
+    <h2>Segments</h2>
+    <div class="seg-list" id="segs"></div>
+
+    <h2>Total length by type</h2>
+    <div class="summary" id="summary"></div>
+
+    <h2>Save / load</h2>
+    <div class="actions">
+      <button class="op primary" id="export">Export GeoJSON</button>
+    </div>
+    <div class="file-row">
+      Load GeoJSON to continue: <input type="file" id="import" accept=".geojson,.json" />
+    </div>
+  </div>
+  <div id="map"></div>
+</div>
+<script>REF={"r1":[[48.15401,11.58292],[48.15408,11.58296],[48.15405,11.58309],[48.15416,11.58315],[48.15419,11.58301],[48.15422,11.58287],[48.15418,11.58286],[48.15411,11.58282],[48.15406,11.5828],[48.15311,11.58234],[48.15305,11.58232],[48.153,11.58229],[48.15279,11.5822],[48.1527,11.58214],[48.15261,11.58202],[48.15255,11.58194],[48.15249,11.58189],[48.15243,11.58185],[48.15236,11.58183],[48.15229,11.58182],[48.15217,11.58183],[48.15207,11.58183],[48.15195,11.58178],[48.15176,11.5817],[48.15147,11.58156],[48.15141,11.58153],[48.15139,11.58152],[48.15135,11.5815],[48.15131,11.58149],[48.15123,11.58145],[48.15114,11.5814],[48.1511,11.58138],[48.15106,11.58136],[48.15066,11.58117],[48.15057,11.58113],[48.15016,11.58094],[48.14986,11.58081],[48.14972,11.58074],[48.14938,11.58058],[48.14932,11.58055],[48.14919,11.58049],[48.1491,11.58044],[48.14902,11.58041],[48.14893,11.58036],[48.14838,11.58011],[48.14783,11.57985],[48.14771,11.5798],[48.14752,11.57971],[48.14696,11.57945],[48.14687,11.5794],[48.14681,11.57937],[48.14675,11.57935],[48.14605,11.57902],[48.14549,11.57876],[48.14543,11.57872],[48.1454,11.57871],[48.14531,11.57866],[48.14527,11.57864],[48.14518,11.57861],[48.14505,11.57856],[48.145,11.57849],[48.14488,11.57844],[48.1448,11.57846],[48.14438,11.57825],[48.1443,11.57821],[48.14406,11.5781],[48.14396,11.57805],[48.14388,11.57801],[48.14364,11.5779],[48.14357,11.57787],[48.14333,11.57775],[48.14327,11.57772],[48.14313,11.57766],[48.1431,11.57764],[48.14297,11.57759],[48.14289,11.57755],[48.14273,11.57747],[48.14271,11.57745],[48.14269,11.57744],[48.14265,11.57741],[48.14262,11.57739],[48.14258,11.57759],[48.14255,11.57772],[48.14253,11.57784],[48.14252,11.57772],[48.14258,11.57743],[48.14259,11.57741],[48.14259,11.57739],[48.14262,11.57739],[48.14262,11.57739],[48.14265,11.57741],[48.14266,11.57734],[48.14274,11.57696],[48.14283,11.57653],[48.14287,11.57634],[48.14295,11.57591],[48.14308,11.57536],[48.14309,11.5753],[48.1431,11.57521],[48.1431,11.57517],[48.14311,11.57515],[48.14314,11.5749],[48.14318,11.57467],[48.14323,11.57446],[48.14335,11.57391],[48.14338,11.57381],[48.14341,11.57372],[48.14343,11.57364],[48.14345,11.57359],[48.14347,11.5735],[48.14352,11.57333],[48.14358,11.57313],[48.14364,11.57291],[48.14366,11.57283],[48.14372,11.57261],[48.14378,11.57237],[48.14384,11.57217],[48.14385,11.5721],[48.14393,11.57182],[48.14396,11.57171],[48.14397,11.57166],[48.14398,11.57165],[48.14405,11.57138],[48.1441,11.57125],[48.14417,11.57099],[48.14419,11.57091],[48.1442,11.57088],[48.14428,11.57061],[48.14432,11.57045],[48.14437,11.57028],[48.14439,11.57022],[48.14449,11.56987],[48.14451,11.56984],[48.14455,11.56979],[48.14459,11.56976],[48.1446,11.56975],[48.14465,11.5697],[48.14471,11.5697],[48.14472,11.5697],[48.14477,11.56969],[48.14482,11.56966],[48.14487,11.56962],[48.14492,11.56956],[48.14494,11.56954],[48.14497,11.56949],[48.14499,11.56945],[48.14502,11.56937],[48.14504,11.56928],[48.14504,11.56925],[48.14504,11.56921],[48.14504,11.56917],[48.14504,11.56914],[48.14504,11.56906],[48.14502,11.56899],[48.145,11.56892],[48.14498,11.56885],[48.14496,11.56881],[48.14494,11.56879],[48.14491,11.56865],[48.14489,11.56857],[48.14488,11.56849],[48.14508,11.56779],[48.14509,11.56773],[48.1452,11.56737],[48.14526,11.56712],[48.14536,11.56679],[48.14539,11.56668],[48.14541,11.5666],[48.14548,11.56664],[48.14588,11.56691],[48.14605,11.56701],[48.14639,11.56723],[48.1466,11.56737],[48.14669,11.56743],[48.14685,11.56753],[48.14692,11.56757],[48.14736,11.56786],[48.14755,11.56798],[48.1476,11.56801],[48.14767,11.56805],[48.14768,11.56806],[48.14776,11.56811],[48.14825,11.56843],[48.14865,11.56868],[48.14882,11.56879],[48.14893,11.56886],[48.14903,11.56893],[48.14943,11.56919],[48.14954,11.56926],[48.14963,11.56932],[48.14969,11.56935],[48.14971,11.56936],[48.14975,11.56939],[48.14983,11.56944],[48.15078,11.57006],[48.15085,11.57011],[48.15116,11.57031],[48.15165,11.57062],[48.15169,11.57064],[48.15176,11.57069],[48.15184,11.57074],[48.15187,11.57076],[48.15247,11.57115],[48.153,11.57149],[48.15325,11.57165],[48.15352,11.57183],[48.15405,11.57217],[48.15474,11.57263],[48.15565,11.57321],[48.15575,11.57328],[48.15577,11.5732],[48.15579,11.57312],[48.15592,11.57269],[48.15599,11.57274],[48.15607,11.57279],[48.15599,11.57274],[48.15592,11.57269],[48.15579,11.57312],[48.15577,11.5732],[48.15575,11.57328],[48.15572,11.57336],[48.1557,11.57343],[48.15541,11.57447],[48.15518,11.57525],[48.15516,11.57533],[48.15515,11.57535],[48.15514,11.57538],[48.15513,11.57546],[48.15502,11.57611],[48.15502,11.57617],[48.15501,11.57626],[48.15493,11.57711],[48.15488,11.57756],[48.1548,11.57826],[48.15472,11.57886],[48.1547,11.57906],[48.15468,11.57929],[48.15451,11.58071],[48.15441,11.58132],[48.15412,11.58276],[48.15411,11.58282],[48.15408,11.58296],[48.15401,11.58292]],"r2":[[48.15418,11.58286],[48.15411,11.58282],[48.15406,11.5828],[48.15311,11.58234],[48.15305,11.58232],[48.153,11.58229],[48.15279,11.5822],[48.1527,11.58214],[48.15261,11.58202],[48.15255,11.58194],[48.15249,11.58189],[48.15243,11.58185],[48.15236,11.58183],[48.15229,11.58182],[48.15217,11.58183],[48.15207,11.58183],[48.15195,11.58178],[48.15176,11.5817],[48.15147,11.58156],[48.15141,11.58153],[48.15139,11.58152],[48.15135,11.5815],[48.15131,11.58149],[48.15123,11.58145],[48.15114,11.5814],[48.1511,11.58138],[48.15106,11.58136],[48.15066,11.58117],[48.15057,11.58113],[48.15016,11.58094],[48.14986,11.58081],[48.14972,11.58074],[48.14938,11.58058],[48.14932,11.58055],[48.14919,11.58049],[48.1491,11.58044],[48.14902,11.58041],[48.14893,11.58036],[48.14838,11.58011],[48.14783,11.57985],[48.14771,11.5798],[48.14752,11.57971],[48.14696,11.57945],[48.14687,11.5794],[48.14681,11.57937],[48.14675,11.57935],[48.14605,11.57902],[48.14549,11.57876],[48.14543,11.57872],[48.1454,11.57871],[48.14531,11.57866],[48.14527,11.57864],[48.14518,11.57861],[48.14505,11.57856],[48.145,11.57849],[48.14488,11.57844],[48.1448,11.57846],[48.14438,11.57825],[48.1443,11.57821],[48.14406,11.5781],[48.14396,11.57805],[48.14388,11.57801],[48.14364,11.5779],[48.14357,11.57787],[48.14333,11.57775],[48.14327,11.57772],[48.14313,11.57766],[48.1431,11.57764],[48.14297,11.57759],[48.14289,11.57755],[48.14273,11.57747],[48.14271,11.57745],[48.14269,11.57744],[48.14265,11.57741],[48.14262,11.57739],[48.14258,11.57759],[48.14262,11.57739],[48.14265,11.57741],[48.14269,11.57744],[48.14271,11.57745],[48.14273,11.57747],[48.14289,11.57755],[48.14297,11.57759],[48.1431,11.57764],[48.14313,11.57766],[48.14327,11.57772],[48.14333,11.57775],[48.14357,11.57787],[48.14364,11.5779],[48.14388,11.57801],[48.14396,11.57805],[48.14406,11.5781],[48.1443,11.57821],[48.14438,11.57825],[48.1448,11.57846],[48.14488,11.57844],[48.145,11.57849],[48.14505,11.57856],[48.14518,11.57861],[48.14527,11.57864],[48.14531,11.57866],[48.1454,11.57871],[48.14543,11.57872],[48.14549,11.57876],[48.14605,11.57902],[48.14675,11.57935],[48.14681,11.57937],[48.14687,11.5794],[48.14696,11.57945],[48.14752,11.57971],[48.14771,11.5798],[48.14783,11.57985],[48.14838,11.58011],[48.14893,11.58036],[48.14902,11.58041],[48.1491,11.58044],[48.14919,11.58049],[48.14932,11.58055],[48.14938,11.58058],[48.14972,11.58074],[48.14986,11.58081],[48.15016,11.58094],[48.15057,11.58113],[48.15066,11.58117],[48.15106,11.58136],[48.1511,11.58138],[48.15114,11.5814],[48.15123,11.58145],[48.15131,11.58149],[48.15135,11.5815],[48.15139,11.58152],[48.15141,11.58153],[48.15147,11.58156],[48.15176,11.5817],[48.15195,11.58178],[48.15207,11.58183],[48.15217,11.58183],[48.15229,11.58182],[48.15236,11.58183],[48.15243,11.58185],[48.15249,11.58189],[48.15255,11.58194],[48.15261,11.58202],[48.1527,11.58214],[48.15279,11.5822],[48.153,11.58229],[48.15305,11.58232],[48.15311,11.58234],[48.15406,11.5828],[48.15411,11.58282],[48.15418,11.58286],[48.15411,11.58282],[48.15406,11.5828],[48.15311,11.58234],[48.15305,11.58232],[48.153,11.58229],[48.15279,11.5822],[48.1527,11.58214],[48.15261,11.58202],[48.15255,11.58194],[48.15249,11.58189],[48.15243,11.58185],[48.15236,11.58183],[48.15229,11.58182],[48.15217,11.58183],[48.15207,11.58183],[48.15195,11.58178],[48.15176,11.5817],[48.15147,11.58156],[48.15141,11.58153],[48.15139,11.58152],[48.15135,11.5815],[48.15131,11.58149],[48.15123,11.58145],[48.15114,11.5814],[48.1511,11.58138],[48.15106,11.58136],[48.15066,11.58117],[48.15057,11.58113],[48.15016,11.58094],[48.14986,11.58081],[48.14972,11.58074],[48.14938,11.58058],[48.14932,11.58055],[48.14919,11.58049],[48.1491,11.58044],[48.14902,11.58041],[48.14893,11.58036],[48.14838,11.58011],[48.14783,11.57985],[48.14771,11.5798],[48.14752,11.57971],[48.14696,11.57945],[48.14687,11.5794],[48.14681,11.57937],[48.14675,11.57935],[48.14605,11.57902],[48.14549,11.57876],[48.14543,11.57872],[48.1454,11.57871],[48.14531,11.57866],[48.14527,11.57864],[48.14518,11.57861],[48.14505,11.57856],[48.145,11.57849],[48.14488,11.57844],[48.1448,11.57846],[48.14438,11.57825],[48.1443,11.57821],[48.14406,11.5781],[48.14396,11.57805],[48.14388,11.57801],[48.14364,11.5779],[48.14357,11.57787],[48.14333,11.57775],[48.14327,11.57772],[48.14313,11.57766],[48.1431,11.57764],[48.14297,11.57759],[48.14289,11.57755],[48.14273,11.57747],[48.14271,11.57745],[48.14269,11.57744],[48.14265,11.57741],[48.14262,11.57739],[48.14258,11.57759]]};</script>
+<script>
+const TYPES = [
+  { key: 'separated_decent', label: 'Separated bike lane – decent quality – asphalt', color: '#22a844' },
+  { key: 'separated_basic',  label: 'Separated bike lane – basic quality – asphalt',  color: '#f2c200' },
+  { key: 'separated_tiles',  label: 'Separated bike lane – bad quality, pavement – tiles', color: '#e02020' },
+  { key: 'nonseparated',     label: 'Non-separated street – asphalt',                  color: '#f08000' },
+  { key: 'construction',     label: 'Construction work – significant changed situation', color: '#38b6ff' },
+];
+const REFPTS = (REF.r1 || []).concat(REF.r2 || []);
+
+let active = 0;
+let current = { latlngs: [], line: null, markers: [] };
+let preview = null;
+let segments = [];
+
+const map = L.map('map', { doubleClickZoom: false }).setView([48.1492, 11.5748], 15);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 20, attribution: '&copy; OpenStreetMap contributors'
+}).addTo(map);
+
+const refLayer = L.layerGroup().addTo(map);
+for (const r of [REF.r1, REF.r2]) {
+  if (r && r.length) L.polyline(r, { color: '#888', weight: 5, opacity: 0.5 }).addTo(refLayer);
+}
+
+function fmtLen(m) { return m >= 1000 ? (m / 1000).toFixed(2) + ' km' : Math.round(m) + ' m'; }
+function lineLength(latlngs) {
+  let s = 0;
+  for (let i = 1; i < latlngs.length; i++) s += map.distance(latlngs[i - 1], latlngs[i]);
+  return s;
+}
+function snap(latlng) {
+  if (!document.getElementById('snap').checked) return [latlng.lat, latlng.lng];
+  let best = null, bd = 20;
+  for (const p of REFPTS) {
+    const d = map.distance(latlng, L.latLng(p[0], p[1]));
+    if (d < bd) { bd = d; best = p; }
+  }
+  return best ? [best[0], best[1]] : [latlng.lat, latlng.lng];
+}
+
+function renderTypes() {
+  const el = document.getElementById('types');
+  el.innerHTML = '';
+  TYPES.forEach((t, i) => {
+    const b = document.createElement('button');
+    b.className = 'type-btn' + (i === active ? ' active' : '');
+    b.innerHTML = `<span class="num">${i + 1}</span><span class="swatch" style="background:${t.color}"></span><span>${t.label}</span>`;
+    b.onclick = () => { active = i; renderTypes(); if (current.line) current.line.setStyle({ color: TYPES[active].color }); };
+    el.appendChild(b);
+  });
+}
+
+function clearMarkers() { current.markers.forEach(m => map.removeLayer(m)); current.markers = []; }
+function redrawCurrent() {
+  if (current.line) map.removeLayer(current.line);
+  clearMarkers();
+  if (current.latlngs.length) {
+    current.line = L.polyline(current.latlngs, { color: TYPES[active].color, weight: 5 }).addTo(map);
+    current.latlngs.forEach(ll => current.markers.push(
+      L.circleMarker(ll, { radius: 3, color: '#111', fillColor: '#fff', fillOpacity: 1, weight: 1 }).addTo(map)
+    ));
+  } else {
+    current.line = null;
+  }
+  updateStatus();
+}
+function setPreview(latlng) {
+  if (preview) { map.removeLayer(preview); preview = null; }
+  if (current.latlngs.length && latlng) {
+    const last = current.latlngs[current.latlngs.length - 1];
+    preview = L.polyline([last, [latlng.lat, latlng.lng]], { color: TYPES[active].color, weight: 3, dashArray: '4 5', opacity: 0.7 }).addTo(map);
+  }
+}
+
+function commitSegment(latlngs, typeIdx) {
+  const line = L.polyline(latlngs, { color: TYPES[typeIdx].color, weight: 6 }).addTo(map);
+  const seg = { type: typeIdx, latlngs, line };
+  line.on('click', (e) => {
+    L.DomEvent.stopPropagation(e);
+    L.popup().setLatLng(e.latlng)
+      .setContent(`<b>${TYPES[typeIdx].label}</b><br>${fmtLen(lineLength(latlngs))}<br><button onclick="deleteSeg(${segments.indexOf(seg)})">Delete this segment</button>`)
+      .openOn(map);
+  });
+  segments.push(seg);
+  renderSegs();
+}
+window.deleteSeg = function (i) {
+  if (i < 0 || i >= segments.length) return;
+  map.removeLayer(segments[i].line);
+  segments.splice(i, 1);
+  map.closePopup();
+  renderSegs();
+};
+
+function finish() {
+  if (current.latlngs.length >= 2) commitSegment(current.latlngs.slice(), active);
+  current.latlngs = [];
+  redrawCurrent();
+  setPreview(null);
+}
+function cancelLine() { current.latlngs = []; redrawCurrent(); setPreview(null); }
+function undoPoint() { current.latlngs.pop(); redrawCurrent(); }
+
+function renderSegs() {
+  const el = document.getElementById('segs');
+  el.innerHTML = '';
+  segments.forEach((s, i) => {
+    const d = document.createElement('div');
+    d.className = 'seg';
+    d.innerHTML = `<span class="dot" style="background:${TYPES[s.type].color}"></span><span>${TYPES[s.type].label}</span><span class="len">${fmtLen(lineLength(s.latlngs))}</span><span class="del" title="delete">×</span>`;
+    d.querySelector('.del').onclick = () => deleteSeg(i);
+    el.appendChild(d);
+  });
+  renderSummary();
+}
+function renderSummary() {
+  const el = document.getElementById('summary');
+  el.innerHTML = '';
+  const totals = TYPES.map(() => 0);
+  for (const s of segments) totals[s.type] += lineLength(s.latlngs);
+  const grand = totals.reduce((a, b) => a + b, 0);
+  TYPES.forEach((t, i) => {
+    const pct = grand ? Math.round(100 * totals[i] / grand) : 0;
+    const row = document.createElement('div');
+    row.className = 'row';
+    row.innerHTML = `<span class="swatch" style="background:${t.color}"></span><span>${t.label.split('–')[0].trim()}</span><span class="len">${fmtLen(totals[i])} · ${pct}%</span>`;
+    el.appendChild(row);
+  });
+}
+function updateStatus() {
+  document.getElementById('status').textContent =
+    current.latlngs.length
+      ? `Drawing "${TYPES[active].label.split('–')[0].trim()}" · ${current.latlngs.length} point(s). Double-click / Enter to finish.`
+      : `Ready. Selected: ${TYPES[active].label.split('–')[0].trim()}.`;
+}
+
+map.on('click', (e) => { current.latlngs.push(snap(e.latlng)); redrawCurrent(); setPreview(e.latlng); });
+map.on('mousemove', (e) => setPreview(e.latlng));
+map.on('dblclick', () => { current.latlngs.pop(); finish(); });
+
+document.getElementById('finish').onclick = finish;
+document.getElementById('undo').onclick = undoPoint;
+document.getElementById('cancel').onclick = cancelLine;
+document.getElementById('showref').onchange = (e) => { e.target.checked ? refLayer.addTo(map) : map.removeLayer(refLayer); };
+
+window.addEventListener('keydown', (e) => {
+  if (e.key >= '1' && e.key <= String(TYPES.length)) { active = +e.key - 1; renderTypes(); updateStatus(); if (current.line) current.line.setStyle({ color: TYPES[active].color }); }
+  else if (e.key === 'Enter') finish();
+  else if (e.key === 'Backspace') { e.preventDefault(); undoPoint(); }
+  else if (e.key === 'Escape') cancelLine();
+});
+
+document.getElementById('export').onclick = () => {
+  const fc = {
+    type: 'FeatureCollection',
+    features: segments.map(s => ({
+      type: 'Feature',
+      properties: { path_type: TYPES[s.type].key, label: TYPES[s.type].label, color: TYPES[s.type].color },
+      geometry: { type: 'LineString', coordinates: s.latlngs.map(([lat, lng]) => [lng, lat]) },
+    })),
+  };
+  const blob = new Blob([JSON.stringify(fc, null, 2)], { type: 'application/geo+json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'bike-path-types.geojson';
+  a.click();
+};
+
+document.getElementById('import').onchange = (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const fc = JSON.parse(reader.result);
+      for (const f of fc.features || []) {
+        if (f.geometry?.type !== 'LineString') continue;
+        let idx = TYPES.findIndex(t => t.key === f.properties?.path_type);
+        if (idx < 0) idx = TYPES.findIndex(t => t.color === f.properties?.color);
+        if (idx < 0) idx = 0;
+        commitSegment(f.geometry.coordinates.map(([lng, lat]) => [lat, lng]), idx);
+      }
+    } catch (err) { alert('Could not parse GeoJSON: ' + err.message); }
+  };
+  reader.readAsText(file);
+};
+
+renderTypes();
+renderSegs();
+updateStatus();
+</script>
+</body>
+</html>

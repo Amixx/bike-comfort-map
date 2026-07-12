@@ -865,12 +865,6 @@
   </aside>
 
   <main class="map-stage">
-    <div class="map-toolbar">
-      <div>
-        <strong>{visibleLayers.size} layer{visibleLayers.size === 1 ? '' : 's'} active</strong>
-        <span>{currentFeatures.length} filtered features</span>
-      </div>
-    </div>
     <div class="map" bind:this={mapEl}></div>
   </main>
 </div>

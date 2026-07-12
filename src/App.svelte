@@ -119,6 +119,43 @@
 
   $: routeLineCount = reconstructedRoutes.filter((route) => route.points.length > 1).length
   $: canSnap = routeLineCount > 0
+  $: legendRows = buildLegendRows(scoreMetric, metricColorMax)
+
+  function buildLegendRows(metric: ScoreMetric, max: Record<ScoreMetric, number>) {
+    const green = '#22c55e', yellow = '#facc15', orange = '#f97316', red = '#d7191c'
+    if (metric === 'comfort') {
+      return [
+        { color: '#00a651', range: '< 1.1 m/s²', meaning: 'Excellent' },
+        { color: '#8cc63f', range: '1.1 – 1.7 m/s²', meaning: 'Good' },
+        { color: '#ffc20e', range: '1.7 – 2.1 m/s²', meaning: 'Intermediate' },
+        { color: '#ed1c24', range: '2.1 – 2.5 m/s²', meaning: 'Acceptable' },
+      ]
+    }
+    if (metric === 'roughness') {
+      return [
+        { color: green, range: '0 – 0.25', meaning: 'Smooth' },
+        { color: yellow, range: '0.25 – 0.5', meaning: 'Moderate' },
+        { color: orange, range: '0.5 – 0.75', meaning: 'Rough' },
+        { color: red, range: '0.75 – 1', meaning: 'Very rough' },
+      ]
+    }
+    const unit = metric === 'vibration' ? '%' : metric === 'speed' ? ' km/h' : ' g'
+    const m = max[metric]
+    const t1 = m * 0.35, t2 = m * 0.58, t3 = m * 0.8
+    const meanings: Record<string, [string, string, string, string]> = {
+      rms: ['Low', 'Moderate', 'High', 'Very high'],
+      peak: ['Mild', 'Moderate', 'Hard', 'Severe'],
+      vibration: ['Rare', 'Occasional', 'Frequent', 'Constant'],
+      speed: ['Slow', 'Moderate', 'Brisk', 'Fast'],
+    }
+    const [m1, m2, m3, m4] = meanings[metric]
+    return [
+      { color: green, range: `≤ ${fmt(t1)}${unit}`, meaning: m1 },
+      { color: yellow, range: `${fmt(t1)} – ${fmt(t2)}${unit}`, meaning: m2 },
+      { color: orange, range: `${fmt(t2)} – ${fmt(t3)}${unit}`, meaning: m3 },
+      { color: red, range: `≥ ${fmt(t3)}${unit}`, meaning: m4 },
+    ]
+  }
   $: {
     visibleLayers
     scoreMetric
@@ -797,11 +834,13 @@
         {/if}
       </label>
       <div class="legend" aria-label="Color legend">
-        {#if scoreMetric === 'comfort'}
-          <span style="background: rgba(0, 166, 81, 0.28)">&lt;1.1 Excellent</span><span style="background: rgba(140, 198, 63, 0.34)">1.1–1.7 Good</span><span style="background: rgba(255, 194, 14, 0.34)">1.7–2.1 Intermediate</span><span style="background: rgba(237, 28, 36, 0.24)">2.1–2.5 Acceptable</span>
-        {:else}
-          <span class="low">low</span><span class="moderate">moderate</span><span class="high">high</span><span class="very-high">very high</span>
-        {/if}
+        {#each legendRows as row}
+          <div class="legend-row">
+            <span class="legend-swatch" style="background: {row.color}"></span>
+            <span class="legend-value">{row.range}</span>
+            <span class="legend-meaning">{row.meaning}</span>
+          </div>
+        {/each}
       </div>
     </section>
 

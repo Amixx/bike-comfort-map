@@ -752,7 +752,6 @@
 <div class="app-shell">
   <aside class="panel">
     <section class="intro card">
-      <p class="eyebrow">Group 3 · Seeeduino LoRaWAN</p>
       <h1>Bike comfort map</h1>
     </section>
 

@@ -1,0 +1,381 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "path_type": "nonseparated",
+        "label": "Non-separated street – asphalt",
+        "color": "#f08000"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            11.56668,
+            48.14539
+          ],
+          [
+            11.56849,
+            48.14488
+          ],
+          [
+            11.56885,
+            48.14498
+          ],
+          [
+            11.56937,
+            48.14502
+          ],
+          [
+            11.56969,
+            48.14477
+          ],
+          [
+            11.56987,
+            48.14449
+          ],
+          [
+            11.57467,
+            48.14318
+          ],
+          [
+            11.57743,
+            48.14258
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "path_type": "separated_basic",
+        "label": "Separated bike lane – basic quality – asphalt",
+        "color": "#f2c200"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            11.57744,
+            48.14269
+          ],
+          [
+            11.57805,
+            48.14396
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "path_type": "construction",
+        "label": "Construction work – significant changed situation",
+        "color": "#38b6ff"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            11.57805,
+            48.14396
+          ],
+          [
+            11.57825,
+            48.14438
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "path_type": "separated_basic",
+        "label": "Separated bike lane – basic quality – asphalt",
+        "color": "#f2c200"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            11.57825,
+            48.14438
+          ],
+          [
+            11.57864,
+            48.14527
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "path_type": "separated_decent",
+        "label": "Separated bike lane – decent quality – asphalt",
+        "color": "#22a844"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            11.57866,
+            48.14531
+          ],
+          [
+            11.57902,
+            48.14605
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "path_type": "separated_basic",
+        "label": "Separated bike lane – basic quality – asphalt",
+        "color": "#f2c200"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            11.57902,
+            48.14605
+          ],
+          [
+            11.5815,
+            48.15135
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "path_type": "separated_decent",
+        "label": "Separated bike lane – decent quality – asphalt",
+        "color": "#22a844"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            11.58156,
+            48.15147
+          ],
+          [
+            11.58189,
+            48.15249
+          ],
+          [
+            11.582497594008135,
+            48.15331779279302
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "path_type": "separated_basic",
+        "label": "Separated bike lane – basic quality – asphalt",
+        "color": "#f2c200"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            11.582583506674355,
+            48.153346423311966
+          ],
+          [
+            11.58286,
+            48.15418
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "path_type": "nonseparated",
+        "label": "Non-separated street – asphalt",
+        "color": "#f08000"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            11.57328,
+            48.15575
+          ],
+          [
+            11.57611,
+            48.15502
+          ],
+          [
+            11.57960156656608,
+            48.15469203968349
+          ],
+          [
+            11.58132,
+            48.15441
+          ],
+          [
+            11.58286,
+            48.15418
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "path_type": "separated_tiles",
+        "label": "Separated bike lane – bad quality, pavement – tiles",
+        "color": "#e02020"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            11.57217,
+            48.15405
+          ],
+          [
+            11.57328,
+            48.15575
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "path_type": "separated_basic",
+        "label": "Separated bike lane – basic quality – asphalt",
+        "color": "#f2c200"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            11.57115,
+            48.15247
+          ],
+          [
+            11.57217,
+            48.15405
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "path_type": "separated_tiles",
+        "label": "Separated bike lane – bad quality, pavement – tiles",
+        "color": "#e02020"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            11.57064,
+            48.15169
+          ],
+          [
+            11.57115,
+            48.15247
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "path_type": "construction",
+        "label": "Construction work – significant changed situation",
+        "color": "#38b6ff"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            11.57006,
+            48.15078
+          ],
+          [
+            11.57062,
+            48.15165
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "path_type": "separated_basic",
+        "label": "Separated bike lane – basic quality – asphalt",
+        "color": "#f2c200"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            11.56939,
+            48.14975
+          ],
+          [
+            11.57006,
+            48.15078
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "path_type": "nonseparated",
+        "label": "Non-separated street – asphalt",
+        "color": "#f08000"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            11.56757,
+            48.14692
+          ],
+          [
+            11.56926,
+            48.14954
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "path_type": "separated_basic",
+        "label": "Separated bike lane – basic quality – asphalt",
+        "color": "#f2c200"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            11.56664,
+            48.14548
+          ],
+          [
+            11.56753,
+            48.14685
+          ]
+        ]
+      }
+    }
+  ]
+}

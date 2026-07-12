@@ -92,7 +92,6 @@
     poor_heading_from_large_gap: 0.38,
     unknown_no_previous_heading: 0.46,
   }
-  const classOrder = ['low roughness', 'moderate roughness', 'high roughness', 'very high roughness']
 
   let mapEl: HTMLDivElement
   let map: L.Map
@@ -118,7 +117,6 @@
   let hasFitted = false
   let viewBeforePrint: { center: L.LatLng; zoom: number } | null = null
 
-  $: stats = buildStats(currentFeatures)
   $: routeLineCount = reconstructedRoutes.filter((route) => route.points.length > 1).length
   $: canSnap = routeLineCount > 0
   $: {
@@ -571,24 +569,6 @@
       .join('')}</div>`
   }
 
-  function buildStats(features: GeoJsonFeature[]) {
-    const pointFeatures = features.filter((feature) => feature.geometry.type === 'Point')
-    const scores = pointFeatures.map((feature) => getScore(feature, feature.properties.app_layer)).filter((x): x is number => x != null)
-    const classes = Object.fromEntries(classOrder.map((className) => [className, 0])) as Record<string, number>
-    for (const feature of pointFeatures) {
-      const layerId = feature.properties.app_layer as LayerId
-      classes[getRoughnessClass(feature, layerId)] = (classes[getRoughnessClass(feature, layerId)] ?? 0) + 1
-    }
-    return {
-      count: features.length,
-      points: pointFeatures.length,
-      min: scores.length ? Math.min(...scores) : null,
-      max: scores.length ? Math.max(...scores) : null,
-      avg: scores.length ? scores.reduce((sum, value) => sum + value, 0) / scores.length : null,
-      classes,
-    }
-  }
-
   function prepareFullRoutePrint() {
     if (!map || !reconstructedRoutes.length) return
     if (!viewBeforePrint) viewBeforePrint = { center: map.getCenter(), zoom: map.getZoom() }
@@ -834,24 +814,11 @@
       <label>
         Minimum packet max speed (km/h)
         <input type="number" min="0" step="0.1" bind:value={minRideMaxSpeedKmh} disabled={!hideStationaryPackets} />
-        <small>The 2 km/h default removes a packet only when its maximum—not average—speed stays below the threshold; this is a project cleaning rule, not ISO 2631-1.</small>
       </label>
       <button type="button" onclick={resetFilters}>Reset view</button>
     </section>
 
     <section class="card stats-card">
-      <h2>Current selection</h2>
-      <div class="stat-grid">
-        <div><strong>{stats.count}</strong><span>features</span></div>
-        <div><strong>{stats.points}</strong><span>points</span></div>
-        <div><strong>{fmt(stats.avg)}</strong><span>avg score</span></div>
-        <div><strong>{fmt(stats.max)}</strong><span>max score</span></div>
-      </div>
-      <div class="compact-list">
-        {#each classOrder as className}
-          <span>{className.replace(' roughness', '')}: {stats.classes[className] ?? 0}</span>
-        {/each}
-      </div>
       <div class="button-row print-actions">
         <button type="button" onclick={printFullRouteMap} disabled={!routeLineCount}>Print / save full map</button>
       </div>

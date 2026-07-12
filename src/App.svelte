@@ -534,10 +534,10 @@
     }
     if (score == null) return '#64748b'
     if (scoreMetric === 'comfort') {
-      if (score > 1.25) return '#d7191c'
-      if (score > 0.63) return '#f97316'
-      if (score > 0.315) return '#facc15'
-      return '#22c55e'
+      if (score >= 2.1) return '#ed1c24'
+      if (score >= 1.7) return '#ffc20e'
+      if (score >= 1.1) return '#8cc63f'
+      return '#00a651'
     }
     const normalized = Math.max(0, Math.min(1, score / metricColorMax[scoreMetric]))
     if (normalized > 0.8) return '#d7191c'
@@ -818,7 +818,7 @@
       </label>
       <div class="legend" aria-label="Color legend">
         {#if scoreMetric === 'comfort'}
-          <span class="low">≤0.315</span><span class="moderate">0.315–0.63</span><span class="high">0.63–1.25</span><span class="very-high">≥1.25</span>
+          <span style="background: rgba(0, 166, 81, 0.28)">&lt;1.1 Excellent</span><span style="background: rgba(140, 198, 63, 0.34)">1.1–1.7 Good</span><span style="background: rgba(255, 194, 14, 0.34)">1.7–2.1 Intermediate</span><span style="background: rgba(237, 28, 36, 0.24)">2.1–2.5 Acceptable</span>
         {:else}
           <span class="low">low</span><span class="moderate">moderate</span><span class="high">high</span><span class="very-high">very high</span>
         {/if}

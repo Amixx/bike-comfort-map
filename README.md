@@ -9,7 +9,7 @@ Proposed repo name: `bike-comfort-map`.
 - Estimated bucket-level points from the separately exported June 27 and July 2 rides
 - Raw packet/window points from both rides
 - Optional real packet GPS dots and diagnostic bucket→packet connector lines
-- Roughness, RMS, relative 0–2.5 comfort proxy, peak acceleration, vibration, and speed coloring
+- Roughness, RMS, 0–2.5 m/s² comfort estimate, peak acceleration, vibration, and speed coloring
 - Metric-specific global color scales calculated across both rides, with a constant feature count when the selected color metric changes
 - Adjustable packet maximum-speed filter (2 km/h by default) to exclude windows whose maximum speed stays below the threshold consistently across layers and print output
 - Toggleable June 27 and July 2 screenshot-route reconstructions with same-ride measurement-colored road segments and an optional full-route color interpolation
@@ -66,4 +66,4 @@ Do not make the GitHub Pages app fetch FROST live; it will not work for public u
 
 The compound score weights, SW-420 hit-rate, 2 km/h packet maximum-speed cutoff, packet maximum aggregation, snapping distance, and color thresholds are project heuristics rather than ISO requirements.
 
-The app recalculates the roughness proxy using global RMS and peak p90 values across both bundled rides, so route colors are comparable between dates. The relative comfort proxy uses `2.5 × min(raw unweighted RMS m/s² / global RMS p90, 1)`: p90 robustly limits the influence of extreme measurements without deleting them. It resembles the ISO comfort range but is not a standards-compliant weighted-acceleration measurement. Packet roughness consistently uses the maximum of its two globally normalized buckets.
+The app recalculates the roughness proxy using global RMS and peak p90 values across both bundled rides, so route colors are comparable between dates. The comfort estimate uses `min(raw unweighted RMS m/s² × 0.35, 2.5)`, where `0.35` is a fixed approximation of the ISO 2631-1 Wk vertical frequency weighting's broadband RMS gain. This yields an absolute 0–2.5 m/s² value comparable to published cycling comfort bands, so the same road reads the same regardless of ride. Because the device transmits only unweighted RMS, this estimates rather than measures the weighted acceleration and is not a standards-compliant assessment. Packet roughness consistently uses the maximum of its two globally normalized buckets.

@@ -33,6 +33,8 @@
     '/data/group3-bike-comfort-ride-2026-07-02-reconstructed-route.geojson',
   ]
   const snapMaxDistanceM = 50
+  const isoWkWeightingFactor = 0.35
+
   let metricColorMax: Record<ScoreMetric, number> = {
     roughness: 1,
     rms: 1,
@@ -491,8 +493,7 @@
     const rawRmsMps2 = layerId === 'packet'
       ? numeric(p.vertical_accel_rms_mps2_window_rms_combined_unweighted)
       : numeric(p.vertical_accel_rms_mps2_unweighted)
-    const referenceHighMps2 = metricColorMax.rms * 9.80665
-    return rawRmsMps2 == null ? null : 2.5 * Math.min(rawRmsMps2 / referenceHighMps2, 1)
+    return rawRmsMps2 == null ? null : Math.min(rawRmsMps2 * isoWkWeightingFactor, 2.5)
   }
 
   function getGlobalRoughnessScore(feature: GeoJsonFeature, layerId: LayerId): number | null {
@@ -555,7 +556,7 @@
       ['Global roughness', fmt(getGlobalRoughnessScore(feature, layerId))],
       ['Class', getRoughnessClass(feature, layerId)],
       ['RMS g', fmt(layerId === 'packet' ? p.vertical_accel_rms_g_window_rms_combined : p.vertical_accel_rms_g)],
-      ['Relative comfort proxy (0–2.5)', fmt(getComfortScore(feature, layerId))],
+      ['Comfort estimate (0–2.5 m/s²)', fmt(getComfortScore(feature, layerId))],
       ['Raw unweighted RMS m/s²', fmt(layerId === 'packet' ? p.vertical_accel_rms_mps2_window_rms_combined_unweighted : p.vertical_accel_rms_mps2_unweighted)],
       ['Peak g', fmt(layerId === 'packet' ? p.vertical_accel_peak_g_window_max : p.vertical_accel_peak_g)],
       ['Vibration %', fmt(layerId === 'packet' ? p.vibration_hit_rate_pct_window_mean : p.vibration_hit_rate_pct)],
@@ -797,7 +798,7 @@
         <select bind:value={scoreMetric}>
           <option value="roughness">Roughness proxy / compound comfort score</option>
           <option value="rms">Vertical acceleration RMS</option>
-          <option value="comfort">Relative comfort proxy (0–2.5)</option>
+          <option value="comfort">Comfort estimate (0–2.5 m/s²)</option>
           <option value="peak">Acceleration peak</option>
           <option value="vibration">Vibration hit-rate</option>
           <option value="speed">Average speed</option>
@@ -807,7 +808,7 @@
         {:else if scoreMetric === 'rms'}
           <small>This shows raw unweighted RMS on one global 0–{fmt(metricColorMax.rms)} g p90 color scale calculated across both rides.</small>
         {:else if scoreMetric === 'comfort'}
-          <small>This relative index uses 2.5 × min(raw RMS / {fmt(metricColorMax.rms * 9.80665)} m/s², 1), where the reference is the global p90 across both rides. Its bands echo <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11134141/" target="_blank" rel="noreferrer">ISO 2631 comfort ranges</a>, but it is not an ISO assessment.</small>
+          <small>Closest attainable ISO-style comfort value: raw unweighted RMS × {fmt(isoWkWeightingFactor)}, a fixed approximation of the <a href="https://www.iso.org/obp/ui/#iso:std:iso:2631:-1:ed-2:v1:en" target="_blank" rel="noreferrer">ISO 2631-1</a> Wk frequency weighting (capped at 2.5 m/s²). Bands follow published <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11134141/" target="_blank" rel="noreferrer">cycling comfort ranges</a>. The device only transmits unweighted RMS, so this estimates rather than measures the weighted acceleration.</small>
         {:else if scoreMetric === 'peak'}
           <small><a href="https://www.iso.org/obp/ui/#iso:std:iso:2631:-1:ed-2:v1:en" target="_blank" rel="noreferrer">ISO 2631-1</a> calls for additional evaluation of high-crest-factor vibration; this map’s simple peak is only a shock indicator.</small>
         {:else if scoreMetric === 'vibration'}
